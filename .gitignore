@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 .mcpb-cache/
+.venv/
+.mcp.json

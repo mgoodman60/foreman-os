@@ -1,12 +1,13 @@
 {
   "name": "foreman-os-marketplace",
+  "description": "Construction superintendent operating system plugin with 42 skills, 37 commands, and 21 field-reference documents for daily reporting, scheduling, document intelligence, and project management.",
   "owner": {
     "name": "Miles Goodman"
   },
   "plugins": [
     {
       "name": "foreman-os",
-      "source": ".",
+      "source": "./",
       "description": "Complete construction superintendent operating system — 42 skills, 37 commands, 21 field-reference documents. Daily reporting, 3-week look-ahead planning, RFI/submittal management, weekly owner reports, material tracking, dashboards, closeout/commissioning, deep document intelligence, and AutoCAD DWG extraction."
     }
   ]

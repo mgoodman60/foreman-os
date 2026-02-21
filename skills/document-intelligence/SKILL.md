@@ -624,6 +624,39 @@ RCPs and MEP plans are the primary source for overhead-plane data (ceiling heigh
 
 See `references/plans-deep-extraction.md` (MEP Drawings section and Reflected Ceiling Plan section) for detailed extraction rules, symbol libraries, and cross-reference tables.
 
+**MEP Extraction Depth Requirements:**
+
+For EVERY MEP sheet processed, the extraction must achieve the following minimums:
+
+| Discipline | Minimum Extraction |
+|---|---|
+| Mechanical | Every equipment tag + cooling tons + heating MBH + CFM + electrical (V/ph/MCA/MOCP) + served rooms |
+| Electrical | Every panel schedule with ALL circuits, single-line diagram hierarchy, lighting fixture schedule with types/quantities/wattages |
+| Plumbing | Every fixture from schedule with type/mounting/connections/ADA/flow rate, water heater specs, pipe sizes by system |
+| Fire Protection | System type (wet/dry/pre-action), riser location, FDC, head schedule (type/temp/K-factor), fire pump if present |
+
+**Do NOT stop at equipment tags only.** The extraction must capture schedule data (capacity, ratings, electrical requirements) from mechanical/electrical/plumbing schedule sheets (M-300, E-300, P-400 series).
+
+**Reference**: See `references/mep-deep-extraction.md` for complete field-by-field extraction templates.
+
+#### Pass 4G-2: MEP Schedule Sheets (M-300, E-300, P-400 Series)
+
+**This pass is MANDATORY for any project with MEP drawings.** Schedule sheets contain the engineering data that equipment tags on plan sheets reference. Without schedule extraction, you only get tag names — not capacities, ratings, or specifications.
+
+**Processing order:**
+1. **M-300 series** (Mechanical Schedules): Extract EVERY row from HVAC equipment schedules, exhaust fan schedules, diffuser/grille schedules
+2. **E-300 series** (Panel Schedules, Lighting Schedules): Extract EVERY panel with ALL circuits, EVERY lighting fixture type with quantities
+3. **P-400 series** (Plumbing Schedules): Extract EVERY fixture from plumbing fixture schedule, water heater/boiler schedule
+4. **FP sheets** (Fire Protection): Extract system type, riser diagram data, sprinkler head schedule
+
+**Output depth per discipline** — see `references/mep-deep-extraction.md` for complete field lists.
+
+**Validation**: After processing, verify:
+- Every equipment tag on plan sheets has a matching schedule entry
+- Panel schedule connected load ≤ main breaker rating
+- Total CFM from diffusers ≤ equipment total CFM
+- Every occupied room has lighting fixtures assigned
+
 #### Pass 4H: Exterior Elevation and Accessibility Extraction
 
 **This pass applies to exterior elevation sheets** (A-200 series) **and architectural floor plans** with accessibility annotations. Skip for sections, MEP plans, and civil/site sheets (except site accessibility routes).
@@ -854,6 +887,7 @@ This skill uses domain-specific extraction guides. **Read the appropriate refere
 | **[dxf-extraction.md](references/dxf-extraction.md)** | Processing .dxf/.dwg CAD files | Layer mapping, block attributes, hatch areas, polyline geometry, dimensions, parse_dxf.py |
 | **[visual-extraction-reference.md](references/visual-extraction-reference.md)** | Processing plan sheet images (PDF→PNG) | OCR text extraction, line/wall detection, symbol recognition, material zones, dimensions, scale calibration |
 | **[masterformat-reference.md](references/masterformat-reference.md)** | Enriching reports, QA checks, morning briefs | CSI Div 01-33: sequencing, QC issues, hold points, testing, weather limits, PEMB + healthcare overlays |
+| **[mep-deep-extraction.md](references/mep-deep-extraction.md)** | Processing MEP plan sheets | Complete HVAC/plumbing/electrical equipment, panel schedules, fixture schedules, pipe/duct sizes, fire protection |
 
 ---
 

@@ -74,11 +74,55 @@ const PROJECT_DATA = {
     cfs: {profile, gauge, spacing, height},
     concrete: {bearing, sog_interior, sog_exterior, rebar, mixes, anchor_bolts, testing},
     mep: {
-      hvac: [{id, type, capacity, location, controls}],
-      plumbing: [{id, type, capacity, fixtures, routing}],
-      electrical: [{id, volts, amps, panels, branch_circuits}],
-      fire: [{id, type, location, coverage}],
-      specialty: [{id, type, location}]
+      equipment: [
+        {
+          id: "RTU-1", tag: "RTU-1", type: "Rooftop Unit",
+          discipline: "mechanical",    // mechanical|plumbing|electrical|fire_protection
+          system: "hvac",              // hvac|exhaust|plumbing|electrical_power|lighting|fire
+          description: "10-Ton Rooftop Unit",
+          location: { grid: "C-D/3-4", room: null, mounting: "Roof" },
+          capacity: { cooling_tons: 10, heating_mbh: 250, airflow_cfm: 4000 },
+          electrical: { voltage: 208, phase: 3, mca: 48, mocp: 60 },
+          served_rooms: ["101","102","103"],
+          manufacturer: null, model: null,
+          spec_section: "23 81 26", source_sheet: "M-301"
+        }
+      ],
+      panels: [{
+        panel: "LP-1", location: "Electrical Room 110",
+        voltage: "208/120V", phase: 3, wires: 4,
+        main_breaker_amps: 225, bus_rating_amps: 225,
+        fed_from: "MDP", mounting: "surface", aic_rating: 22000,
+        circuits: [{number: 1, breaker_amps: 20, poles: 1, description: "Lighting 101-103", va: 1800, phase: "A"}],
+        totals: {connected_va: 45000, demand_va: 31500, spare_breakers: 6, space_slots: 4}
+      }],
+      single_line: {
+        utility_service: {voltage: 208, phase: 3, service_amps: 800},
+        main_switchboard: {rating_amps: 800, main_breaker_amps: 800},
+        transformers: [], distribution_tree: [],
+        generator: null, ats: null, ups: null
+      },
+      fixtures: {
+        lighting: [{mark: "A", description: "2x4 LED Troffer", wattage: 40, lumens: 5000, cct_k: 4000, mounting: "recessed", quantity: 48}],
+        plumbing: [{tag: "WC-1", type: "water_closet", manufacturer: null, model: null, mounting: "wall-hung", flush_gpf: 1.28, ada: true, quantity: 12}]
+      },
+      distribution: {
+        duct_mains: [{size: "24x12", type: "supply", from_equipment: "RTU-1", material: "galvanized"}],
+        pipe_mains: [{system: "domestic_cold", size: "2\"", material: "copper"}]
+      },
+      fire_protection: {
+        system_type: "wet", design_standard: "NFPA 13", hazard_class: "Light",
+        riser: {location: "Mech Room 110", size: "6\""}, fdc: {location: "East exterior", type: "Siamese"},
+        heads: [{type: "concealed_pendant", temp_rating: "155F", k_factor: 5.6, coverage_sqft: 225}],
+        fire_pump: null
+      },
+      device_counts: [{room: "101", duplex: 6, gfci: 2, dedicated: 1, data_telecom: 3}],
+      conflicts: [],
+      extraction_coverage: {
+        sheets_processed: [],
+        total_equipment_count: 0,
+        completeness_pct: 0
+      }
     },
     finishes: {flooring, wall_finishes, ceiling, paint, acoustical},
     doors: [{opening, type, material, hardware, schedule, supplier}],
@@ -185,6 +229,12 @@ const DATA_MANIFEST = {
     // ... 14 more files
   },
   section_visibility: {
+    mep_equipment: true,
+    mep_panels: true,
+    mep_single_line: true,
+    mep_fixtures: true,
+    mep_fire_protection: true,
+    mep_data_gaps: true,
     doors_hardware: true,
     concrete_mix_designs: true,
     field_tolerances: true,

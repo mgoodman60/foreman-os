@@ -531,41 +531,134 @@ Room 107 (Nurse Station):
 
 ## MEP DRAWINGS (M/E/P-series)
 
-### HVAC Equipment Schedule
+**CRITICAL**: MEP extraction must go beyond equipment tags. Extract FULL schedule data — capacities, ratings, electrical requirements, fixture details — from MEP schedule sheets (M-300, E-300, P-400 series). See `references/mep-deep-extraction.md` for complete field-by-field templates.
 
-**EXTRACT ALL UNITS**:
-- **Mark**: RTU-1, AHU-2, EF-3, etc.
-- **Location**: Roof, mech room, grid location
-- **Type**: Rooftop unit, air handler, exhaust fan, etc.
-- **Capacity**: Cooling (tons/MBH), heating (MBH/KW), airflow (CFM)
-- **Electrical**: Voltage, phase, MCA, MOCP
-- **Manufacturer/model** if on submittal
+### HVAC Equipment Schedule (M-300 Series)
+
+**EXTRACT EVERY UNIT** from mechanical schedules:
+
+Per equipment item:
+- **Tag**: RTU-1, AHU-2, EF-3, MAU-1, UH-1, FCU-1, HP-1
+- **Type**: Rooftop Unit, Air Handler, Exhaust Fan, Make-Up Air, Unit Heater, Fan Coil, Split System, Mini-Split, Heat Pump, ERV/HRV, VRF
+- **Location**: Roof/mech room/ceiling space + grid ref or room + mounting (curb, pad, ceiling-hung, wall)
+- **Cooling**: Tons or MBH, type (DX, chilled water), refrigerant (R-410A, R-32, R-454B)
+- **Heating**: MBH or KW, type (gas, electric, heat pump, hydronic)
+- **Airflow**: CFM, external static pressure (in. w.c.)
+- **Efficiency**: SEER, EER, AFUE, COP, HSPF
+- **Electrical**: Voltage/phase/Hz, MCA, MOCP, FLA, LRA
+- **Physical**: Weight (lbs), dimensions (L×W×H), sound rating (dBA), gas connection size
+- **Controls**: DDC/standalone, economizer type (dry-bulb/enthalpy/none), VFD (yes/no)
+- **Served areas**: Room numbers, zone name, main duct size leaving unit
+- **Manufacturer/model**: From submittals if available
 
 **Example**:
-```
-RTU-1: Roof over Grids C-D/3-4, 10-ton cooling, 250 MBH heating, 4000 CFM
-        208V/3ph/60Hz, MCA 48A, MOCP 60A
-        Serves: Offices (Rooms 101-110)
+```json
+{
+  "tag": "RTU-1", "type": "rooftop_unit",
+  "location": {"grid": "C-D/3-4", "room": "Roof", "mounting": "curb"},
+  "cooling": {"tons": 10, "type": "DX", "refrigerant": "R-410A"},
+  "heating": {"mbh": 250, "type": "gas"},
+  "airflow": {"cfm": 4000, "esp_inwc": 1.5},
+  "efficiency": {"seer": 14.3, "afue": 81},
+  "electrical": {"voltage": 208, "phase": 3, "hz": 60, "mca": 48, "mocp": 60, "fla": 38, "lra": 190},
+  "physical": {"weight_lbs": 1450, "dimensions": "96x60x42", "sound_dba": 72, "gas_conn": "1\""},
+  "controls": {"type": "DDC", "economizer": "dry-bulb", "vfd": true},
+  "served_rooms": ["101", "102", "103", "104", "105"],
+  "manufacturer": null, "model": null,
+  "source_sheet": "M-301"
+}
 ```
 
-### Electrical Panel Schedule
+### Exhaust Fan Schedule
 
-**EXTRACT ALL PANELS**:
-- **Panel ID**: LP-1, PP-2, DP-3
-- **Location**: Room number or grid
-- **Voltage/phase**: 120/208V, 277/480V
+Per fan:
+- **Tag**: EF-1, EF-2, etc.
+- **Type**: Centrifugal, inline, roof-mounted, wall-mounted, utility set
+- **CFM**, static pressure (in. w.c.), HP
+- **Voltage/phase**, MCA, MOCP
+- **Served rooms/areas**
+- **Speed control**: Single-speed, multi-speed, VFD
+- **Duct size**: At fan connection
+
+### Diffuser/Grille Schedule
+
+Per device:
+- **Tag/type**: CD (ceiling diffuser), RG (return grille), EG (exhaust grille), SD (slot diffuser)
+- **Size**: Neck or face dimensions
+- **CFM**: Rated airflow
+- **Throw pattern**: 1-way, 2-way, 3-way, 4-way, radial
+- **Rooms**: Where installed
+- **Mounting**: Ceiling, wall, floor, linear slot
+- **Served by**: Equipment tag (RTU-1, AHU-2, etc.)
+
+### Ductwork Sizes and Routing
+
+Extract all duct sizes from M-100 plan sheets:
+- **Size format**: Rectangular = W×H (e.g., "24×12"), Round = diameter (e.g., "10\" RD")
+- **System type**: Supply (S), return (R), exhaust (E), outside air (OA)
+- **Material**: Galvanized sheet metal, flex duct, lined, external wrap, fiberglass duct board
+- **Main trunk runs**: Trace from each air handler with sizes at key points
+- **Branch sizes**: At tees/takeoffs to rooms
+- **Insulation**: Internal lined, external wrap, none (note where specified)
+
+### Electrical Panel Schedule (E-300 Series)
+
+**EXTRACT EVERY PANEL — the most critical electrical data.**
+
+Panel header:
+- **Designation**: LP-1, PP-2, DP-3, MDP, etc.
+- **Location**: Room number or grid reference
+- **Voltage/phase/wires**: 208/120V 3ph 4W, 480/277V 3ph 4W, etc.
 - **Main breaker**: Amps
-- **Fed from**: Which upstream panel
-- **Areas served**
+- **Bus rating**: Amps (may differ from main breaker)
+- **Fed from**: Which upstream panel/switchboard
+- **Mounting**: Surface, flush, NEMA type
+- **AIC rating**: kAIC (interrupting capacity)
 
-### Lighting Fixture Schedule
+Per circuit:
+- **Number**: 1, 2, 3... (odd = left side, even = right side)
+- **Breaker size**: Amps
+- **Poles**: 1, 2, or 3
+- **Load description**: "Lighting Rooms 101-103", "RTU-1", "Receptacles 201"
+- **Connected VA**: Load in volt-amps
+- **Phase**: A, B, or C
+
+Panel totals:
+- **Connected VA** per phase (A, B, C)
+- **Demand VA** (with demand factors applied)
+- **Spare breakers**: Count of installed but unused breakers
+- **Space slots**: Count of empty slots with no breaker
+
+### Single-Line Diagram (E-001 or E-100)
+
+Complete power distribution hierarchy:
+- **Utility service**: Voltage, phase, service entrance size (amps)
+- **Main switchboard/MDP**: Rating, main breaker
+- **Transformers**: kVA, primary/secondary voltage, impedance
+- **Distribution panels**: Fed-from tree (MDP → Panel A → Sub-panel A1)
+- **ATS (Automatic Transfer Switch)**: Rating, transfer time, bypass
+- **Generator**: KW, fuel type (diesel/natural gas), voltage, phase, enclosure, run time
+- **UPS**: kVA, battery runtime, load served
+
+### Lighting Fixture Schedule (E-200 Series)
 
 **EXTRACT ALL FIXTURE TYPES**:
-- **Type mark**: A, B, C or Type 1, Type 2
+
+Per fixture type:
+- **Mark**: A, B, C or Type 1, Type 2
 - **Description**: Recessed LED troffer, pendant, wall sconce, etc.
-- **Wattage**, **lumens**
-- **Mounting**: Recessed, surface, pendant, wall
-- **Control**: Switched, dimmed, occupancy sensor
+- **Manufacturer/catalog**: From submittals if available
+- **Wattage**: Per fixture
+- **Lumens**: Initial lumens per fixture
+- **Color temperature**: K (3000K, 3500K, 4000K, 5000K)
+- **CRI**: Color rendering index (typically 80-90+)
+- **Mounting**: Recessed, surface, pendant, wall, track
+- **Lens type**: Frosted, prismatic, parabolic, open, opal
+- **Voltage**: 120V, 277V, etc.
+- **Dimming**: 0-10V, DALI, Lutron, non-dimming
+- **Emergency battery**: Yes/no, duration (90 min typical)
+- **Controls**: Switched, dimmed, occupancy sensor, daylight harvesting
+- **Total quantity**: Count from schedules or plan count
 
 **[RENDERING DATA] - Visual Appearance**:
 - **Fixture appearance/style**:
@@ -576,110 +669,115 @@ RTU-1: Roof over Grids C-D/3-4, 10-ton cooling, 250 MBH heating, 4000 CFM
   - "LED edge-lit wall sconce" (contemporary decorative)
 - **Fixture color/housing**:
   - "White trim ring", "Brushed nickel finish", "Matte black housing", etc.
-  - Example: "Brushed nickel pendant with frosted shade"
-  - Example: "Recessed downlight with white trim ring"
-- **Lens type**:
-  - Frosted (diffuses light evenly), prismatic (focuses downward), open (exposed lamp), parabolic (reflector), clear, opal, etc.
-  - Example: "Frosted acrylic lens"
+- **Lens type**: Frosted, prismatic, open, parabolic, clear, opal
 - **Decorative fixtures** (if any):
   - Pendant style: modern, transitional, traditional, industrial, etc.
   - Sconce style: direct, indirect, up-down light, etc.
-  - Decorative shape: drum, cylinder, cone, geometric, etc.
   - Finish options: chrome, bronze, nickel, copper, etc.
 
 **Example**:
 ```json
 {
-  "lighting_fixture_schedule": [
-    {
-      "mark": "Type A",
-      "description": "Recessed 2x2 LED troffer, 4000K",
-      "wattage": 40,
-      "lumens": 4200,
-      "mounting": "Recessed in ACT",
-      "control": "Switched + occupancy sensor",
-      "rendering_data": {
-        "appearance": "Recessed 2x2 flat panel LED",
-        "trim_finish": "White trim ring",
-        "lens_type": "Frosted acrylic"
-      }
-    },
-    {
-      "mark": "Type C",
-      "description": "Pendant fixture, dimmable",
-      "wattage": 25,
-      "lumens": 2200,
-      "mounting": "Pendant hang",
-      "control": "Dimmed, day-lit harvesting",
-      "rendering_data": {
-        "appearance": "Modern drum pendant with frosted shade",
-        "finish": "Brushed nickel frame",
-        "shade_material": "Frosted acrylic",
-        "diameter": "14 inches"
-      }
-    },
-    ...
-  ]
+  "mark": "Type A",
+  "description": "Recessed 2x4 LED troffer",
+  "manufacturer": null, "catalog_number": null,
+  "wattage": 40, "lumens": 5000, "cct_k": 4000, "cri": 85,
+  "mounting": "Recessed in ACT", "lens_type": "Frosted acrylic",
+  "voltage": "277V", "dimming": "0-10V", "emergency_battery": false,
+  "controls": "Occupancy sensor + daylight harvesting",
+  "quantity": 48,
+  "rendering_data": {
+    "appearance": "Recessed 2x4 flat panel LED",
+    "trim_finish": "White trim ring",
+    "lens_type": "Frosted acrylic"
+  }
 }
 ```
 
-### Plumbing Fixture Schedule
+### Receptacle/Device Counts (E-100 Power Plans)
 
-**EXTRACT ALL FIXTURES**:
-- Fixture type (WC, lav, sink, urinal, etc.)
-- Manufacturer/model
-- Mounting (floor, wall, counter)
-- Faucet type (manual, sensor, etc.)
-- ADA compliance notes
+Count per room from power plans:
+- **Duplex receptacles**: Standard 120V
+- **GFCI receptacles**: Wet locations, countertops
+- **Dedicated circuits**: Equipment-specific outlets
+- **240V outlets**: Dryers, welders, special equipment
+- **Data/telecom outlets**: RJ45 jacks
+- **Special devices**: Card readers, cameras, motion sensors, occupancy sensors
+
+### Plumbing Fixture Schedule (P-400 Series)
+
+**EXTRACT EVERY FIXTURE**:
+
+Per fixture:
+- **Tag**: WC-1, LAV-1, SK-1, UR-1, MOP-1, DF-1, EW-1, FD-1
+- **Type**: Water Closet, Lavatory, Sink, Urinal, Mop Sink, Drinking Fountain, Eye Wash, Floor Drain
+- **Manufacturer/model**: Full catalog info from submittals
+- **Mounting**: Floor-mounted, wall-hung, countertop, undermount, drop-in, pedestal
+- **Connection sizes**: Hot supply, cold supply, waste
+- **Faucet type**: Manual lever, sensor (battery/hardwired), metering, foot pedal
+- **ADA compliance**: Yes/no (must be explicitly noted)
+- **Flow rate**: GPM for faucets/showers, GPF for flush fixtures
+- **Flush valve type**: Manual, sensor, dual-flush
+- **Quantity**: Total count across project
 
 **[RENDERING DATA] - Visual Appearance**:
-- **Fixture color**:
-  - "White", "Bone", "Biscuit", "Almond", "Black", "Stainless", "Gray", "Custom color"
-  - Example: "White porcelain WC" or "Stainless steel sink"
-- **Faucet finish**:
-  - "Polished chrome", "Brushed nickel", "Oil-rubbed bronze", "Matte black", "Copper", etc.
-  - Example: "Single lever faucet, brushed nickel finish"
-- **Sink style**:
-  - Undermount (disappears under countertop), drop-in (rim sits on counter), vessel (bowl sits on counter), wall-hung (cantilever), pedestal, etc.
-  - Example: "Undermount rectangular sink, white porcelain"
-- **Accessory finishes**:
-  - Towel bars, grab bars, soap dispensers, toilet paper holders, towel rings
-  - Color/finish: "Brushed nickel", "Chrome", "Oil-rubbed bronze", "Stainless", "White", etc.
-  - Example: "24\" grab bar in oil-rubbed bronze"
+- **Fixture color**: "White", "Bone", "Biscuit", "Stainless", "Black", etc.
+- **Faucet finish**: "Polished chrome", "Brushed nickel", "Oil-rubbed bronze", "Matte black"
+- **Sink style**: Undermount, drop-in, vessel, wall-hung, pedestal
+- **Accessory finishes**: Towel bars, grab bars, soap dispensers — finish and material
 
 **Example**:
 ```json
 {
-  "plumbing_fixture_schedule": [
-    {
-      "mark": "LAV-1",
-      "type": "Lavatory",
-      "manufacturer": "American Standard",
-      "model": "Boxwood 20\" sink",
-      "mounting": "Undermount",
-      "faucet_type": "Single-lever sensor, ADA compliant",
-      "rendering_data": {
-        "fixture_color": "White porcelain",
-        "sink_style": "Rectangular undermount",
-        "faucet_finish": "Polished chrome",
-        "accessories": [
-          {"item": "18\" towel bar", "finish": "Polished chrome"},
-          {"item": "Grab bar 24\"", "finish": "Polished chrome"},
-          {"item": "Toilet paper holder", "finish": "Polished chrome"}
-        ]
-      }
-    },
-    ...
-  ]
+  "tag": "WC-1", "type": "water_closet",
+  "manufacturer": "American Standard", "model": "Afwall 3351.101",
+  "mounting": "wall-hung", "flush_type": "sensor", "flush_gpf": 1.28,
+  "connections": {"cold": "1\"", "waste": "4\"", "vent": "2\""},
+  "ada": true, "quantity": 12,
+  "rendering_data": {
+    "fixture_color": "White vitreous china",
+    "flush_valve_finish": "Polished chrome"
+  }
 }
 ```
 
+### Water Heater / Boiler Schedule
+
+Per unit:
+- **Tag**: WH-1, BLR-1, etc.
+- **Type**: Storage tank, tankless, heat pump, indirect, boiler
+- **Capacity**: Gallons (storage), GPH recovery, BTU/hr input
+- **Efficiency**: UEF, thermal efficiency %
+- **Fuel**: Gas, electric, heat pump, solar-assist
+- **Electrical**: Voltage, phase, KW (if electric)
+- **Vent type**: Direct vent, power vent, atmospherically vented
+- **Location**: Room, grid reference
+- **Served areas**: Domestic hot water zones, heating loops
+
+### Pipe Sizing and Routing
+
+From plans and riser diagrams:
+- **System**: DCW (domestic cold), DHW (domestic hot), sanitary, vent, storm, gas, medical gas, compressed air
+- **Size**: Nominal pipe diameter
+- **Material**: Copper, CPVC, PEX, PVC, cast iron, HDPE, black steel, stainless steel
+- **Main runs**: From source through building, noting size transitions
+- **Insulation**: Fiberglass, elastomeric, heat trace (where noted)
+
 ### Fire Protection
 
-- System type (wet, dry, pre-action)
-- Sprinkler head types and coverage
-- Riser location
-- FDC location
+- **System type**: Wet, dry, pre-action, deluge, combined standpipe
+- **Design standard**: NFPA 13, 13R, or 13D
+- **Hazard classification**: Light, Ordinary Group 1/2, Extra Group 1/2
+- **Riser**: Location (room/grid), size (pipe diameter)
+- **FDC**: Location (face of building), type (Siamese/Storz), size
+- **Head schedule**:
+  - Type: Pendant, upright, sidewall, concealed, ESFR
+  - Temperature rating: 155°F (ordinary), 200°F (intermediate), 286°F (high)
+  - K-factor: 5.6, 8.0, 11.2, 14.0, 25.2
+  - Coverage: SF per head
+  - Finish: White, chrome, brass, custom color
+- **Fire pump** (if present): GPM, PSI, HP, driver (electric/diesel), jockey pump
+- **Standpipe**: Type (I, II, III), location, hose connections
 
 ---
 

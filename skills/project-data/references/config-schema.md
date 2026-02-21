@@ -565,39 +565,102 @@ Everything derived from plan sheets — spatial layout, quantities, drawing cros
   },
 
   "mep_systems": {
-    "electrical": {
-      "source_sheets": [],
-      "panel_schedules": [],
-      "single_line_data": {},
-      "circuit_assignments": []
+    "source_sheets": ["M-100", "M-301", "E-100", "E-200", "P-100", "P-401"],
+
+    "mechanical": {
+      "equipment": [
+        {
+          "tag": "RTU-1", "type": "rooftop_unit",
+          "location": {"grid": "C-3", "room": "Roof", "mounting": "curb"},
+          "cooling": {"tons": 10, "type": "DX", "refrigerant": "R-410A"},
+          "heating": {"mbh": 250, "type": "gas"},
+          "airflow": {"cfm": 4000, "esp_inwc": 1.5},
+          "electrical": {"voltage": 208, "phase": 3, "mca": 48, "mocp": 60},
+          "controls": {"type": "DDC", "economizer": "dry-bulb", "vfd": true},
+          "served_rooms": ["101", "102", "103"],
+          "source_sheet": "M-301"
+        }
+      ],
+      "exhaust_fans": [],
+      "diffusers_grilles": [],
+      "duct_runs": []
     },
-    "pipe_sizes": [
-      {
-        "system": "domestic_cold|domestic_hot|sanitary|storm|gas|medical",
-        "size": "4\"",
-        "material": "SS|PVC|copper|CPVC",
-        "sheet": "P-100",
-        "run_segments": []
-      }
-    ],
-    "duct_sizes": [
-      {
-        "size": "12x8",
-        "type": "supply|return|exhaust",
-        "sheet": "M-100",
-        "run_segments": []
-      }
-    ],
-    "equipment": [
-      {
-        "tag": "RTU-1",
-        "type": "rooftop_unit|vav_box|exhaust_fan|pump|panel",
-        "sheet": "M-100",
-        "position": {"grid": "", "room": ""},
-        "schedule_data": {}
-      }
-    ]
+
+    "plumbing": {
+      "fixtures": [
+        {
+          "tag": "WC-1", "type": "water_closet",
+          "manufacturer": "American Standard", "model": "Afwall 3351.101",
+          "mounting": "wall-hung", "flush_gpf": 1.28,
+          "connections": {"cold": "1\"", "waste": "4\""},
+          "ada": true, "quantity": 12,
+          "source_sheet": "P-401"
+        }
+      ],
+      "equipment": [],
+      "pipe_runs": [],
+      "risers": []
+    },
+
+    "electrical": {
+      "panel_schedules": [
+        {
+          "panel": "LP-1",
+          "location": "Electrical Room 110",
+          "voltage": "208/120V", "phase": 3, "wires": 4,
+          "main_breaker_amps": 225, "bus_rating_amps": 225,
+          "fed_from": "MDP", "mounting": "surface", "aic_rating": 22000,
+          "circuits": [
+            {"number": 1, "breaker_amps": 20, "poles": 1, "description": "Lighting 101-103", "va": 1800, "phase": "A"}
+          ],
+          "totals": {"connected_va": 45000, "demand_va": 31500, "spare_breakers": 6, "space_slots": 4},
+          "source_sheet": "E-301"
+        }
+      ],
+      "single_line_data": {
+        "utility_service": {"voltage": 208, "phase": 3, "service_amps": 800},
+        "main_switchboard": {"rating_amps": 800, "main_breaker_amps": 800},
+        "transformers": [],
+        "distribution_tree": [
+          {"from": "MDP", "to": "PNL-A", "breaker": 225, "cable": null}
+        ],
+        "generator": {"kw": 100, "fuel": "diesel", "voltage": 208, "phase": 3},
+        "ats": {"rating_amps": 200, "transfer_time_sec": 10}
+      },
+      "lighting_fixtures": [
+        {"mark": "A", "description": "2x4 LED Troffer", "wattage": 40, "lumens": 5000, "cct_k": 4000, "mounting": "recessed", "quantity": 48}
+      ],
+      "device_counts_by_room": [
+        {"room": "101", "duplex": 6, "gfci": 2, "dedicated": 1, "data_telecom": 3}
+      ]
+    },
+
+    "fire_protection": {
+      "system_type": "wet",
+      "design_standard": "NFPA 13",
+      "hazard_class": "Light",
+      "riser": {"location": "Mech Room 110", "size": "6\""},
+      "fdc": {"location": "East exterior", "type": "Siamese"},
+      "heads": [
+        {"type": "concealed_pendant", "temp_rating": "155F", "k_factor": 5.6, "coverage_sqft": 225, "finish": "white"}
+      ],
+      "fire_pump": null
+    },
+
+    "conflicts": []
   },
+
+### MEP Data Validation
+
+When writing to `mep_systems`, validate:
+1. **Equipment MCA ↔ Panel Circuit**: Every equipment item with MCA/MOCP should have a matching panel circuit with breaker ≥ MOCP
+2. **Equipment Rooms ↔ Room Schedule**: All served_rooms must exist in spatial.room_schedule
+3. **Diffuser CFM ↔ Equipment CFM**: Sum of diffuser CFM per zone ≤ equipment total CFM
+4. **Lighting Count ↔ Schedule**: Sum of fixture counts on plans ≈ schedule total quantity
+5. **Panel Load ↔ Upstream**: Panel connected_va ≤ upstream breaker rating × voltage
+6. **Generator kW ↔ Emergency**: Generator capacity ≥ sum of emergency panel loads
+
+Log validation failures as `mep_systems.conflicts[]` entries.
 
   "elevations": {
     "exterior": [

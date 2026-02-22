@@ -1,10 +1,13 @@
 ---
 name: project-dashboard
 description: >
-  Use this skill when the user asks to "see the dashboard", "show project status",
-  "how's the project going", "weekly summary", or wants to see trends and metrics
-  from their daily report history. Generates an interactive HTML dashboard with
-  Weekly and Project tabs.
+  Generate interactive HTML project dashboards from daily report history and project intelligence
+  data. Provides Weekly (operational pulse) and Project (lifetime trends) tabs with charts, tables,
+  and an embedded project data chat interface. Integrates data from daily reports, schedule, directory,
+  inspections, procurement, RFIs, submittals, change orders, pay applications, labor tracking, and
+  quality management. Triggers: "dashboard", "project status", "show project status", "how's the
+  project going", "project overview", "project metrics", "project trends", "see the dashboard",
+  "generate dashboard", "weekly summary chart", "headcount chart", "milestone tracker".
 version: 1.0.0
 ---
 

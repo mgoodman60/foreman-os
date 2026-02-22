@@ -87,7 +87,7 @@ The skill uses project intelligence from the following sources:
 
 - **project-data skill**: Source for all project intelligence (grid lines, building areas, floor levels, spec sections, team info, logs)
 - **document-intelligence skill**: Advanced sheet reference matching and drawing metadata lookup
-- **report-builder skill**: PDF generation and styling (uses same palette: Navy #1B2A4A, Blue #2E5EAA, Light Blue #EDF2F9)
+- **PDF styling conventions**: Navy #1B2A4A headers, Blue #2E5EAA section labels, Light Blue #EDF2F9 cell backgrounds (consistent across all Foreman OS document outputs)
 
 ## Professional Standards
 

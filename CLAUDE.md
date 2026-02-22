@@ -15,6 +15,11 @@ This is **foreman-os-marketplace**, a cowork plugin marketplace repository conta
 README.md                          — Full documentation of commands, skills, and data files
 commands/                          — 37 slash-command definitions (markdown files)
 skills/                            — 42 skill directories, each with SKILL.md + references/ or scripts/
+plugins/                           — 4 Claude Code dev plugins (not used by Cowork)
+  foremanos-stack/                 — Prisma, NextAuth, Redis, SWR, Trigger.dev patterns + hooks
+  foremanos-llm/                   — LLM orchestration, vision, RAG, prompt patterns + agent
+  foremanos-testing/               — Vitest, API route testing patterns + /test-coverage-report command
+  foremanos-documents/             — PDF gen, Office docs, R2 file storage patterns
 ```
 
 There is no build system, no tests, no package manager. The entire codebase is markdown files, JSON configs, and a few Python reference scripts.
@@ -32,6 +37,11 @@ Commands (in `commands/`) are the user-facing entry points (invoked as `/log`, `
 
 Example chain: `/log` command → reads `intake-chatbot` skill + `project-data` skill → classifies input → enriches with project intelligence → writes to `daily-report-intake.json`.
 
+### Cowork vs Claude Code Plugins
+- The main `foreman-os` plugin (defined in `.claude-plugin/`) works in both Cowork and Claude Code
+- The 4 dev plugins under `plugins/` are Claude Code-only — they contain hooks, agents, and commands that require Claude Code's execution environment
+- Do NOT install dev plugins in Cowork — they cause sandbox mount errors
+
 ### Key Conventions
 - Commands reference skills via `${CLAUDE_PLUGIN_ROOT}/skills/<skill-name>/SKILL.md` — this variable resolves to the repository root at runtime
 - Commands also reference cowork platform skills (e.g., `docx`, `pdf`, `construction-takeoff`) for output formatting
@@ -48,7 +58,7 @@ Documents → `document-intelligence` skill (three-pass extraction) → structur
 - Various `*-log.json` files for RFIs, submittals, procurement, delays, etc.
 
 ### Python Reference Scripts and Executable Scripts
-Three Python files exist under `skills/document-intelligence/references/` and `skills/quantitative-intelligence/references/` — these are reference implementations for visual plan analysis, sheet cross-referencing, and calculation bridging. They are not executed directly by the plugin but serve as reference code for the AI.
+Five Python files exist under `skills/document-intelligence/references/` and `skills/quantitative-intelligence/references/` — these are reference implementations for visual plan analysis, sheet cross-referencing, and calculation bridging. They are not executed directly by the plugin but serve as reference code for the AI.
 
 The `skills/dwg-extraction/scripts/` directory contains executable scripts that ARE run directly:
 - `compile_libredwg.sh` — Compiles the libredwg C library from GitHub source (cached at `/tmp/libredwg/dwg2dxf`)

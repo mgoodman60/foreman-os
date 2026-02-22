@@ -3,7 +3,10 @@ name: drawing-control
 description: >
   Manage drawing revisions, ASI incorporation, superseded sheet flagging, and current-set verification.
   Ensures the field always works from the latest approved drawings. Tracks distribution, validates
-  references in daily reports and RFIs, and alerts on obsolete sheet usage.
+  references in daily reports and RFIs, and alerts on obsolete sheet usage. Triggers: "revision",
+  "ASI", "current sheet", "superseded", "drawing log", "drawing distribution", "obsolete drawing",
+  "sheet update", "field set", "current set", "drawing status", "new revision", "void drawing",
+  "latest drawing", "which revision", "update the drawings", "drawing register".
 version: 1.0.0
 ---
 

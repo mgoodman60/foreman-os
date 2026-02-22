@@ -430,6 +430,47 @@ Each EVM data point is pulled from source systems:
 ---
 
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-populate EVM baseline data, actual costs, and earned value from project data files instead of requiring manual entry for every reporting period.
+
+### Budget Baseline (BAC)
+Pull baseline budget from cost tracking data:
+- Read `cost-data.json` → `budget_by_division[]` → sum all division budgets for BAC
+- Read `change-order-log.json` → filter by `status` = "approved" → sum `cost_approved` amounts → add to original BAC for re-baselined BAC
+- Example: Original BAC $2,805,000 + approved CO-005 $17,800 = re-baselined BAC $2,822,800
+
+### Planned Value (BCWS) / Schedule Baseline
+Build the planned value curve from schedule data:
+- Read `schedule.json` → `milestones[]` + `critical_path[]` → map planned work percentage over time
+- Cross-reference `cost-data.json` → `budget_by_division[]` → distribute budget across scheduled activities for cost-loaded baseline
+- Use `schedule.json` → `percent_complete` (baseline) → calculate cumulative PV at each reporting period
+
+### Actual Cost (ACWP)
+Aggregate actual expenditures from multiple sources:
+- Read `labor-tracking.json` → `crew_summaries[]` → sum labor costs per reporting period
+- Read `procurement-log.json` → `total_cost` for delivered items → sum material costs per period
+- Read `cost-data.json` → actual costs by division → validate against labor + material totals
+- Example: Feb labor $95,000 + materials $28,000 + sub invoices $62,000 = $185,000 AC
+
+### Earned Value (BCWP)
+Calculate earned value from progress and baseline:
+- Read `cost-data.json` → `percent_complete_by_division[]` → multiply each division's budget × percent complete
+- Read `schedule.json` → `percent_complete` → validate overall earned value aligns with schedule progress
+- Cross-reference `daily-report-data.json` → work completed entries → ground-truth percent complete against field observations
+
+### Change Order Adjustments
+Adjust baseline for approved scope changes:
+- Read `change-order-log.json` → filter `status` = "approved" → for each approved CO, add `cost_approved` to BAC
+- Read `change-order-log.json` → `schedule_impact_days` → adjust planned value curve for approved time extensions
+- Flag unapproved COs with `cost_estimate` > $10,000 as potential BAC adjustment risks
+
+### Forecast Validation
+Cross-check EAC forecasts against bottom-up estimates:
+- Read `cost-data.json` → `forecast_to_complete[]` → compare bottom-up ETC against CPI-based ETC
+- If bottom-up ETC diverges from CPI-based ETC by >10%, flag for superintendent review
+- Read `delay-log.json` → active delays → factor delay cost impact into composite EAC (Method 3: CPI x SPI)
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

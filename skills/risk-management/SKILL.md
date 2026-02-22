@@ -367,6 +367,50 @@ Risks related to worker safety, health, and regulatory compliance.
 ---
 
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-populate risk register entries with data-driven evidence from project files instead of relying solely on manual assessment.
+
+### Schedule Risk Identification
+Auto-flag schedule-driven risks from critical path analysis:
+- Read `schedule.json` → `critical_path[]` → identify activities with zero or low float as schedule risk items
+- Flag activities where float < 5 days as "near-critical" schedule risks
+- Auto-populate risk register entries with activity name, planned dates, and float available
+- Example: "MEP Rough-In" has 3 days float → auto-create risk item: "MEP rough-in schedule risk — 3 days float, any delay extends critical path"
+
+### Weather Risk Thresholds
+Pre-populate weather-sensitive activity risks with contractual limits:
+- Read `specs-quality.json` → `weather_thresholds[]` → for each threshold (concrete min temp, roofing wind limit, etc.), create risk register entries with specific trigger conditions
+- Cross-reference `schedule.json` → identify when weather-sensitive activities are scheduled → assess seasonal risk
+- Example: Concrete pours scheduled March → weather_thresholds show min 40F → auto-create risk: "Cold weather concrete risk, P=4, I=3, Score=12"
+
+### Subcontractor Performance Risk
+Assess sub-specific risks from directory and performance data:
+- Read `directory.json` → `subcontractors[]` → pull EMR (Experience Modification Rate) and safety record for risk assessment
+- Read `quality-data.json` → FPIR per trade → flag subs with quality performance below 85% as quality risk items
+- Read `labor-tracking.json` → `productivity_ratios[]` → flag subs with productivity below benchmark as schedule risk
+- Example: Sub with EMR 1.3 and FPIR 78% → auto-create risk: "Sub quality/safety performance risk, P=4, I=3, Score=12"
+
+### Cost/Contingency Context
+Show risk exposure relative to available contingency:
+- Read `cost-data.json` → `contingency.available_contingency` → calculate total risk exposure as percentage of remaining contingency
+- Auto-populate risk report summary with contingency drawdown projections
+- Flag when cumulative high/critical risk cost exposure exceeds 75% of available contingency
+- Example: 5 active high risks with combined exposure $180,000, contingency remaining $200,000 → flag: "90% contingency at risk"
+
+### Historical Delay Patterns
+Seed risk register with evidence-based risks from delay history:
+- Read `delay-log.json` → `delay_events[]` → identify recurring delay types (weather, sub performance, material) and their frequency
+- Auto-create risk register entries for delay categories that have occurred 2+ times
+- Include historical average duration and cost impact in the risk description
+- Example: 3 weather delays averaging 4 days each → auto-create risk: "Recurring weather delay pattern, avg 4 days, P=4 based on history"
+
+### Procurement Risk
+Flag supply chain risks from procurement status:
+- Read `procurement-log.json` → filter items with `category` = "long_lead" or `delivery_status` = "delayed" → auto-create procurement risk entries
+- Read `submittal-log.json` → filter items with `status` = "revise_and_resubmit" or overdue → flag as procurement delay risks
+- Example: PEMB steel delivery delayed 2 weeks → auto-create risk: "PEMB delivery delay risk, critical path impact, P=5, I=4, Score=20"
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

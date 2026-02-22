@@ -158,6 +158,54 @@ This priority order ensures files are saved directly to the local project folder
 
 ---
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-populate lookahead activities with schedule data, sub assignments, material status, and constraint information from project data files.
+
+### Activity Extraction
+Pull activities scheduled within the lookahead window:
+- Read `schedule.json` → filter activities with start date within the lookahead window (next 2-6 weeks from today)
+- Include `critical_path[]` activities (red-coded) and near-critical activities (amber-coded)
+- Auto-populate activity name, baseline duration, planned start/finish, and float available
+- Example: 4-week window from 03/03 → pull "PEMB erection", "CFS framing start", "MEP rough-in prep"
+
+### Predecessor Tracking
+Flag activities with incomplete predecessors:
+- Read `schedule.json` → for each activity in the window, pull predecessor relationships and their completion status
+- Flag if any predecessor is incomplete or behind schedule → mark activity as "at risk" in the lookahead
+- Auto-populate a "Prerequisites" column showing predecessor status (complete/in-progress/not-started)
+- Example: "MEP rough-in" requires "CFS framing complete" as predecessor → framing 75% complete → flag as "prerequisite in progress"
+
+### Sub Mobilization
+Identify subs that need notification for upcoming work:
+- Read `directory.json` → `subcontractors[]` → for each activity in the window, identify the assigned sub and their current mobilization status
+- Flag subs not yet mobilized that have activities starting within 2 weeks → add "Mobilization Required" alert
+- Auto-populate crew headcount expectations from sub contract scope
+- Example: Alexander Construction (PEMB) not yet on site, erection starts 03/23 → flag: "Alexander mobilization needed by 03/16"
+
+### Material Delivery Check
+Cross-check material availability against planned activities:
+- Read `procurement-log.json` → for each activity, match required materials → compare `expected_delivery` date against activity start date
+- Flag activities where material delivery is scheduled after activity start → RED alert in lookahead
+- Check `cert_status` → flag materials delivered but with pending certifications as AMBER
+- Example: Door hardware needed 04/01, procurement-log shows Schiller delivery expected 04/15 → RED: "Material delayed 14 days"
+
+### Inspection Prerequisites
+Flag activities requiring inspection sign-off:
+- Read `specs-quality.json` → `hold_points[]` → for each activity in the window, check if a hold point inspection is required before the next phase
+- Cross-reference `inspection-log.json` → verify inspection status (scheduled/pass/fail)
+- Add "Hold Point" markers to the lookahead for activities that cannot proceed without inspection
+- Example: PEMB erection requires HP-007 (anchor bolt survey) → inspection-log shows scheduled 03/16 → add hold point marker
+
+### Weather Restrictions
+Flag weather-sensitive activities in the lookahead window:
+- Read `specs-quality.json` → `weather_thresholds[]` → identify activities with temperature, wind, or precipitation restrictions
+- Flag all weather-sensitive activities with their specific threshold requirements
+- When weather forecast is available, cross-reference and color-code: GREEN (clear), AMBER (marginal), RED (restricted)
+- Example: Concrete pour Week 2 → threshold min 40F → forecast shows 38F on planned day → AMBER: "Marginal weather, monitor forecast"
+
+---
+
 ## Cross-References
 
 This skill reads project intelligence from the **project-data** skill:

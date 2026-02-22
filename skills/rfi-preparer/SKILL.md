@@ -110,3 +110,44 @@ This skill requires:
 
 If any required data is missing, the skill will prompt the user to provide it or use defaults.
 
+---
+
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-populate RFI and transmittal fields from the data store instead of requiring manual entry.
+
+### Location Resolution
+Resolve casual location descriptions to structured references:
+- Read `plans-spatial.json` → `building_areas[]` + `room_schedule[]` → match user's casual description (e.g., "east side second floor") to specific grid reference, floor level, and building area
+- Read `plans-spatial.json` → `grid_lines[]` → resolve to column/row intersection for the RFI location field
+- Example: "near the bathroom on the second floor" → Grid D-3, Level 2, East Wing, Room 204
+
+### Drawing Reference Auto-Fill
+Automatically identify affected drawing sheets:
+- Read `plans-spatial.json` → `sheet_cross_references.drawing_index[]` → match the resolved location and work type to relevant drawing sheet numbers
+- Auto-populate the "Affected Drawings" field with sheet numbers and descriptions
+- Example: Grid D-3 plumbing issue → Sheets P-2.1 (Second Floor Plumbing Plan), A-2.1 (Second Floor Plan)
+
+### Spec Section Auto-Fill
+Match work type to specification references:
+- Read `specs-quality.json` → `spec_sections[]` → match the RFI subject's trade/work type to the relevant CSI division and section number
+- Auto-populate the "Specification Reference" field
+- Example: Drywall question → Division 09, Section 09 29 00 (Gypsum Board)
+
+### Team Distribution
+Auto-fill routing and contact information:
+- Read `directory.json` → `project_team[]` → auto-fill architect, engineer, and owner representative contacts for the RFI routing fields
+- Read `directory.json` → `subcontractors[]` → identify the affected sub for CC distribution
+- Example: Structural question → Route to SE (from project_team), CC to Alexander Construction (PEMB sub)
+
+### Numbering Sequence
+Maintain sequential numbering automatically:
+- Read `rfi-log.json` → find max RFI `id` number → auto-assign next sequential ID (e.g., last RFI-047 → next is RFI-048)
+- Read `submittal-log.json` → find max submittal `id` → auto-assign next transmittal number
+
+### Related Item Cross-Reference
+Surface related open items for context:
+- Read `rfi-log.json` → filter by matching `location` or `subject` keywords → surface related open/pending RFIs
+- Read `submittal-log.json` → filter by matching `spec_section` → surface related submittals and their approval status
+- Read `procurement-log.json` → check if the RFI subject relates to any items with `delivery_status` = "delayed" → flag procurement impacts
+

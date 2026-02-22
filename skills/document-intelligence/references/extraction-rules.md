@@ -34,6 +34,12 @@ This system captures deep, field-actionable intelligence from construction docum
 - **[ASI Deep Extraction](asi-extraction.md)** - Architect's supplemental instructions, revised drawings, scope changes, impact assessment
 - **[DXF Spatial Extraction](dxf-extraction.md)** - CAD geometry, blocks, hatches, dimensions, material areas (parse_dxf.py)
 - **[Visual Plan Analysis](visual-extraction-reference.md)** - OCR, line/wall detection, symbols, material zones, dimensions, scale (visual_plan_analyzer.py)
+- **[Material Testing Reports Deep Extraction](material-testing-extraction.md)** - Concrete compression, steel MTRs, soil compaction, welding inspection, special inspections
+- **[Warranty Documentation Deep Extraction](warranty-documentation-extraction.md)** - Equipment warranties, material warranties, workmanship warranties, performance guarantees
+- **[As-Built Drawings Deep Extraction](as-built-extraction.md)** - As-built drawing sets, record drawings, red-line markups, field measurement notations
+- **[Testing & Commissioning Deep Extraction](testing-and-commissioning-extraction.md)** - HVAC TAB reports, fire protection tests, electrical tests, generator load tests, plumbing pressure tests
+- **[O&M Manuals Deep Extraction](o-and-m-manual-extraction.md)** - Equipment O&M manuals, system operation manuals, maintenance procedures, parts catalogs
+- **[Fire Protection Deep Extraction](fp-deep-extraction.md)** - Sprinkler systems, fire alarm, riser diagrams, fire rated assemblies, FDC, NFPA 13 compliance, firestopping
 
 ---
 
@@ -128,6 +134,12 @@ Based on document type from Passes 1-2, extract specific intelligence following 
 | "SUBCONTRACT AGREEMENT", scope exhibit, retainage, signature pages, insurance exhibit | Executed Subcontract |
 | "PURCHASE ORDER", PO number, line items with quantities/prices, delivery dates, shipping terms | Purchase Order |
 | "ASI", "Architect's Supplemental Instruction", cover sheet, affected drawings list, superseded drawings | ASI / Supplemental Instruction |
+| "compressive strength", "ASTM C39", "mill certificate", "MTR", "compaction report", "proctor", "nuclear gauge", "soil density", "welding inspection", "NDT", "special inspection" | Material Testing Report |
+| "WARRANTY", "GUARANTEE", "CERTIFICATE OF WARRANTY", warranty duration language, exclusions sections, claim procedures, registration forms | Warranty Documentation |
+| "AS-BUILT", "RECORD DRAWING", "AS-CONSTRUCTED", red-line markups, cloud/revision marks, field measurement notations | As-Built Drawings |
+| "TAB report", "air balance", "hydrostatic test", "megger test", "insulation resistance", "generator load test", "pressure test", "commissioning", "functional performance test" | Testing & Commissioning |
+| "Operation and Maintenance", "O&M Manual", "maintenance schedule", "preventive maintenance", "parts list", "troubleshooting", "sequence of operation", "emergency procedures" | O&M Manual |
+| "NFPA 13", "sprinkler", "fire alarm", "fire protection", "fire rated", "FDC", "riser diagram", "fire damper", "smoke damper", "hydrostatic test", "fire alarm control panel" | Fire Protection |
 
 ---
 
@@ -497,6 +509,81 @@ This file provides the framework. For detailed extraction rules by category, see
 - Integration rules: merge visual results with text/DXF data, source attribution, conflict resolution
 - visual_plan_analyzer.py pipeline script (PaddleOCR + OpenCV, outputs JSON)
 - symbol_templates/ directory for template matching customization
+
+### [Material Testing Reports Deep Extraction](material-testing-extraction.md)
+**When to use**: Processing concrete compression test reports, steel mill test reports (MTRs), soil compaction test reports, third-party inspection certificates, welding inspection reports
+
+**Contains**:
+- Concrete compression test parsing (ASTM C39 results, f'c values, break dates, cylinder IDs, age at break, cure method, lab certification)
+- Steel mill test reports / MTRs (heat numbers, chemical composition, tensile/yield strength, elongation, Charpy impact, specification compliance)
+- Soil compaction test reports (proctor results, in-place density, nuclear gauge readings, moisture content, percent compaction, lift number, test location)
+- Welding inspection reports (NDT method, weld joint ID, pass/fail, defect type, inspector certification, WPS/PQR reference)
+- Special inspection certificates (inspection type, code reference, inspector name/cert number, results, conformance statement)
+- Cross-reference integration (link test results to spec requirements in specs-quality.json, flag failures against spec thresholds, tie to grid/location in plans-spatial.json)
+
+### [Warranty Documentation Deep Extraction](warranty-documentation-extraction.md)
+**When to use**: Processing manufacturer equipment warranties, material warranties, workmanship warranties, roofing/waterproofing system warranties, performance guarantees
+
+**Contains**:
+- Warranty identification parsing (warranty type, warrantor, project name, effective date, expiration date, duration)
+- Coverage scope extraction (covered components, covered defects, performance criteria, coverage limits)
+- Exclusion parsing (excluded conditions, excluded uses, maintenance requirements for warranty validity, environmental limitations)
+- Claim procedures (notification requirements, time limits for claims, required documentation, contact information, claim submission process)
+- Registration requirements (registration deadlines, required forms, installation certification, commissioning documentation)
+- Cross-reference integration (link warranties to equipment in plans-spatial.json, tie to spec sections in specs-quality.json, flag expiration dates for closeout tracking)
+
+### [As-Built Drawings Deep Extraction](as-built-extraction.md)
+**When to use**: Processing as-built drawing sets, record drawings, red-line markups
+
+**Contains**:
+- As-built identification parsing (sheet number, discipline, revision date, marked-up-by, original drawing reference)
+- Red-line markup extraction (change type — addition/deletion/relocation, affected element, new dimensions/locations, markup color coding)
+- Cloud and revision mark detection (revision number, revision date, description of change, affected area/grid reference)
+- Field measurement notations (actual vs. design dimensions, field-verified elevations, as-installed equipment locations)
+- Deviation tracking (design vs. as-built comparison, dimensional variances, relocated element mapping)
+- Cross-reference integration (update plans-spatial.json with as-built dimensions, flag deviations from original design, link to RFIs/ASIs that drove changes via rfi-log and drawing-log)
+
+### [Testing & Commissioning Deep Extraction](testing-and-commissioning-extraction.md)
+**When to use**: Processing HVAC TAB reports, fire protection test reports, electrical test reports, generator load bank tests, plumbing pressure tests, building envelope tests
+
+**Contains**:
+- HVAC TAB report parsing (air balance data — design CFM vs. actual CFM, water balance — design GPM vs. actual GPM, terminal unit readings, duct static pressures, fan performance curves)
+- Fire protection test reports (hydrostatic test pressures, flow test results, alarm/supervisory device tests, trip test results, inspection certificates)
+- Electrical test reports (megger/insulation resistance readings, ground fault impedance, breaker trip tests, protective relay settings, power quality measurements)
+- Generator load bank tests (load steps, voltage/frequency stability, transfer switch operation, run time, fuel consumption, governor response)
+- Plumbing pressure tests (test pressure, duration, medium, pass/fail, system identification, witness signature)
+- Building envelope tests (air infiltration, water penetration, thermal imaging results, window/curtain wall test reports)
+- Cross-reference integration (link test results to equipment in plans-spatial.json, verify against spec performance criteria in specs-quality.json, flag deficiencies for punch-list tracking, tie to commissioning milestones in schedule.json)
+
+### [O&M Manuals Deep Extraction](o-and-m-manual-extraction.md)
+**When to use**: Processing equipment O&M manuals, system operation manuals, maintenance procedure documents, parts catalogs
+
+**Contains**:
+- Equipment identification parsing (manufacturer, model number, serial number, installation date, location, serving area, spec section reference)
+- Operating procedures extraction (startup sequence, normal operation, shutdown sequence, emergency procedures, seasonal changeover)
+- Maintenance schedule parsing (preventive maintenance tasks, frequency/intervals, required parts, estimated duration, skill level required)
+- Parts list extraction (part numbers, descriptions, quantities, suppliers, lead times, recommended spares inventory)
+- Troubleshooting guide parsing (symptom, probable cause, corrective action, required tools, safety precautions)
+- Sequence of operation extraction (control logic, setpoints, interlocks, alarm conditions, override procedures)
+- Warranty cross-reference (link to warranty-documentation-extraction.md for warranty terms affecting maintenance requirements)
+- Cross-reference integration (link equipment to plans-spatial.json locations, tie maintenance requirements to specs-quality.json, flag critical spares for procurement tracking, associate with closeout documentation requirements)
+
+### [Fire Protection Deep Extraction](fp-deep-extraction.md)
+**When to use**: Processing fire protection drawings (FP sheets), sprinkler plans, fire alarm plans, riser diagrams, fire rated assembly schedules, Division 21/28 specifications
+
+**Contains**:
+- Sprinkler system identification (wet, dry, pre-action, deluge per zone, hazard classification)
+- Sprinkler head schedule (type, temperature rating, K-factor, coverage area, finish, quantity by floor)
+- Pipe sizing and material (mains, cross-mains, branch lines, risers — black steel, CPVC, thin-wall)
+- Riser and valve extraction (riser locations, FCA per floor, OS&Y valves, alarm check/dry pipe valves)
+- Fire department connection (FDC location, type — Siamese/Storz, systems served, signage, hydrant proximity)
+- Fire rated assembly schedules (wall ratings with UL design numbers, floor/ceiling ratings, construction details)
+- Penetration firestopping (UL system numbers, penetrant types, sealant/device, manufacturer)
+- Fire damper and smoke damper locations and ratings
+- Fire alarm system (FACP location/model, initiating device counts by type and floor, notification appliance counts, addressable vs. conventional)
+- NFPA 13 spacing compliance checks (standard spray, extended coverage, obstruction rules, storage requirements)
+- Testing and inspection hold points (hydrostatic test 200 PSI/2 hr, trip test, alarm verification, fire alarm acceptance, rough-in, firestopping)
+- Cross-reference integration (link to quality-data.json for FP inspections, plans-spatial.json for system layout, specs-quality.json for hold points and thresholds)
 
 ---
 

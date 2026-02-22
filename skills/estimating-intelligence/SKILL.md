@@ -347,6 +347,74 @@ Example: 500 LF of continuous footing x 0.15 MH/LF forming labor = 75 man-hours.
 
 ---
 
+## Waste Factor Reference
+
+Waste factors account for material lost during installation due to cutting, breakage, over-ordering, damage, and field conditions. Apply these factors to net (plan) quantities to arrive at order quantities.
+
+| Material | Typical Waste % | Low (controlled) | High (complex) | Notes |
+|----------|----------------|-------------------|-----------------|-------|
+| Ready-mix concrete (slabs) | 5% | 3% | 8% | Pump loss, over-pour, finishing waste |
+| Ready-mix concrete (footings) | 3% | 2% | 5% | Form accuracy dependent |
+| Ready-mix concrete (walls) | 7% | 5% | 10% | Form blowout risk, pump waste |
+| Rebar | 5% | 3% | 8% | Lap splices, cut-off waste |
+| Structural steel | 3% | 2% | 5% | Shop fabrication waste |
+| CMU (block) | 5% | 3% | 8% | Breakage, cutting waste |
+| Brick | 8% | 5% | 12% | Breakage, cutting at openings |
+| Drywall | 10% | 7% | 15% | Cutouts, damage, odd room shapes |
+| Insulation (batt) | 5% | 3% | 8% | Cutting waste at framing |
+| Insulation (rigid) | 7% | 5% | 10% | Cutting waste, breakage |
+| Lumber (framing) | 10% | 7% | 15% | End cuts, defects, damage |
+| Plywood/OSB (sheathing) | 8% | 5% | 12% | Cut-off waste, damage |
+| Roofing membrane (TPO/EPDM) | 10% | 7% | 15% | Seam overlaps, flashing waste |
+| Asphalt shingles | 10% | 7% | 15% | Starter, ridge, hip cuts |
+| Paint | 10% | 5% | 15% | Touch-up, coverage variance, texture |
+| Ceramic tile | 10% | 7% | 15% | Cuts at edges, breakage, patterns |
+| Carpet | 8% | 5% | 12% | Seaming waste, room geometry |
+| Pipe (all types) | 5% | 3% | 8% | Fittings allowance, cut waste |
+| Conduit | 5% | 3% | 8% | Bends, cut waste |
+| Wire/cable | 3% | 2% | 5% | Pull lengths, termination waste |
+| Ductwork | 5% | 3% | 8% | Fittings allowance, custom pieces |
+
+### Waste Factor Application Notes
+
+- These are **default** waste factors. When `project-config.json` has project-specific waste factors, use those instead.
+- Complex geometry, multi-story work, and tight access increase waste toward the high end of each range.
+- Material stored properly on-site (covered, level, protected from traffic) reduces breakage waste toward the low end.
+- Pre-fabrication (off-site) significantly reduces field waste -- shop-fabricated assemblies typically achieve the low-end waste factor or better.
+
+---
+
+## Assembly-to-Division Mapping
+
+Assembly chains in `plans-spatial.json` group elements by physical construction sequence (e.g., "Footing F1" = excavation + formwork + rebar + concrete + strip). CSI division budgets in `cost-data.json` group costs by trade/material type (e.g., Division 03 = all concrete, Division 05 = all metals).
+
+**One assembly spans multiple divisions:**
+
+| Assembly Step | CSI Division | Cost Category |
+|--------------|-------------|---------------|
+| Footing F1 — Excavation | 31 (Earthwork) | Equipment + labor |
+| Footing F1 — Formwork | 03 (Concrete) | Material + labor |
+| Footing F1 — Rebar | 03 (Concrete) | Material + labor |
+| Footing F1 — Concrete pour | 03 (Concrete) | Material + equipment + labor |
+| Footing F1 — Backfill | 31 (Earthwork) | Equipment + labor |
+| Footing F1 — Waterproofing | 07 (Thermal & Moisture) | Material + labor |
+
+**Mapping workflow:**
+1. For each assembly chain in `plans-spatial.json → assembly_chains[]`, identify constituent steps
+2. Each step maps to a CSI division via `estimating-intelligence` division classification
+3. Quantity from the assembly step × unit cost from division budget = cost allocation
+4. Sum allocations per division to validate against `cost-data.json → budget_by_division[]`
+
+**Common multi-division assemblies:**
+- **Exterior wall**: 04 (masonry) + 05 (structural steel lintels) + 07 (insulation, flashing, sealants) + 08 (windows/doors) + 09 (interior finish)
+- **Roof**: 05 (steel deck) + 07 (insulation, membrane, flashing) + 22 (roof drains) + 23 (RTU curbs)
+- **Slab on grade**: 31 (subgrade prep) + 03 (concrete, rebar, vapor barrier) + 09 (floor finish)
+- **MEP rough-in in wall**: 22 (plumbing) + 23 (HVAC) + 26 (electrical) — all hidden in same wall cavity
+
+**Reconciliation check:** After estimates are complete, compare:
+- Total assembly-based estimate (sum of all assemblies × unit costs) vs.
+- Total division-based budget (sum of `budget_by_division[].original_amount`)
+- Variance >5% should be investigated — likely indicates missing scope in one method
 
 ---
 

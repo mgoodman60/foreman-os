@@ -381,6 +381,45 @@ The labor-tracking skill automatically compares daily labor entries against crew
 ---
 
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-resolve locations, validate employers, benchmark productivity against plan quantities, and cross-validate against daily reports.
+
+### Location Auto-Resolution
+When the user provides a casual location for labor entries:
+- Read `plans-spatial.json` → `building_areas[]` and `room_schedule[]` → resolve to grid reference, building area, and floor level
+- Auto-fill the `location_grid` field with the resolved grid reference
+- Example: User says "east wing second floor" → resolve to Grid E-G / 3-5, Level 2
+
+### Employer Validation
+When a labor entry's `employer` field is provided:
+- Read `directory.json` → `subcontractors[]` → match by name (exact or fuzzy partial match)
+- If match found: auto-correct to official company name from directory
+- If no match found: flag `employer_matched: false` for review — the sub may not be in the directory yet
+- Example: User enters "Walker" → resolve to "Walker Construction"
+
+### Productivity Benchmarking
+When a crew summary includes `work_accomplished` with measurable output:
+- Read `plans-spatial.json` → `quantities` → find the total plan quantity for the work type
+- Calculate output-per-labor-hour and compare against benchmark ratios
+- For concrete work: Calculate CY placed per labor-hour vs 0.040 CY/hr benchmark
+- For framing: Calculate studs installed per labor-hour vs 15 studs/hr benchmark
+- For drywall: Calculate SF hung per labor-hour vs 85 SF/hr benchmark
+- Include plan total as context: "12 CY poured today of 42.3 CY total footings (28%)"
+
+### Daily Report Cross-Validation
+When labor entries exist for a date that also has a daily report:
+- Read `daily-report-intake.json` or `daily-report-data.json` → crew section
+- Compare logged crew headcounts per trade against labor tracking entries per trade
+- Flag mismatches: "Daily report shows 6 concrete workers, labor tracking has 5 entries for concrete"
+- Compare overtime hours reported in daily report against overtime in labor entries
+
+### Cost Code Mapping
+When a labor entry has trade and work description but no cost code:
+- Read `specs-quality.json` → `spec_sections[]` → match work description to CSI section
+- Suggest the appropriate cost code based on trade → CSI division mapping
+- Example: trade="Concrete", work="Footing rebar layout" → suggest cost code 03-2000 (Concrete Reinforcement)
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

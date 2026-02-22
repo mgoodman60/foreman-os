@@ -302,6 +302,51 @@ Upward trend (left to right) = improving plan discipline. Downward = systemic is
 ---
 
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-populate weekly planning inputs from project data files instead of requiring manual assembly of activity lists, constraint data, and resource availability.
+
+### Activity Pool
+Pull schedulable activities for the planning window:
+- Read `schedule.json` → `activities[]` (or `milestones[]` + `critical_path[]`) → filter activities scheduled to start or continue within the planning week
+- Sort by priority: critical path activities first, then near-critical (float < 5 days), then standard
+- Auto-populate the weekly plan form with activity name, baseline duration, and scheduled start/finish
+- Example: Week of 03/03 → pull "Set footing rebar X-4 to X-6", "Pour stem walls X-1 to X-4", "Install temporary power"
+
+### Sub Availability
+Identify which subcontractors are mobilized and available:
+- Read `directory.json` → `subcontractors[]` → identify subs with active scope and crew availability for the planning week
+- Cross-reference `labor-tracking.json` → recent crew attendance → verify actual crew sizes vs. committed headcount
+- Auto-populate the "Labor" constraint column on the constraint status matrix
+- Example: Walker (Excavation) crew of 4 available, W Principles (Concrete) crew of 6 available, EKD (CFS) not yet mobilized
+
+### Location Constraints
+Identify spatial conflicts between trades:
+- Read `plans-spatial.json` → `building_areas[]` → for each planned activity, check if multiple trades are scheduled in the same building area during the same week
+- Flag space/access conflicts in the constraint status matrix
+- Example: CFS framing and MEP rough-in both planned for East Wing corridor → flag space conflict, sequence framing before MEP
+
+### Weather Planning
+Flag weather-sensitive activities for the planning week:
+- Read `specs-quality.json` → `weather_thresholds[]` → identify which planned activities have weather restrictions (temp, wind, rain)
+- Cross-reference with weather forecast data → flag if planned outdoor activities conflict with forecast conditions
+- Auto-populate the constraint status matrix "Equipment/Weather" column
+- Example: Concrete pour planned Thursday → weather_thresholds require min 40F → forecast shows 35F → flag weather constraint
+
+### Material Readiness
+Verify materials are available for planned activities:
+- Read `procurement-log.json` → for each planned activity, check `expected_delivery` date against activity start date
+- Flag activities where material delivery date is after planned start → mark "Material" constraint as blocked
+- Check `cert_status` → flag materials delivered but not yet verified as "Material (pending certs)"
+- Example: Stem wall pour needs rebar → procurement-log shows rebar delivered 02/10, certs verified → Material cleared
+
+### Prerequisite Inspection
+Verify required inspections are complete before next phase:
+- Read `specs-quality.json` → `hold_points[]` → for each planned activity, check if a hold point inspection is required before work can proceed
+- Cross-reference `inspection-log.json` → verify hold point inspection result (pass/fail/scheduled)
+- Flag activities where prerequisite inspection has not passed → mark "Prerequisites" constraint as blocked
+- Example: CFS framing requires HP-002 (foundation inspection) to pass first → check inspection-log → HP-002 passed 02/27 → Prerequisites cleared
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

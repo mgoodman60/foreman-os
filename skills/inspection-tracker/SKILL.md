@@ -147,6 +147,37 @@ Auto-populate CSI specification section reference:
 - Structural Steel → 5.1.1
 - Electrical → 16.0.0
 
+### Hold Point Auto-Population
+Read `specs-quality.json` → `hold_points[]` → match inspection type to hold point by `work_type`:
+- Pull the hold point's `inspection_name`, `trigger` condition, `inspector`, and `spec_reference`
+- Auto-populate the inspection's `linked_hold_point` and `linked_spec_section` fields
+- Example: Scheduling "Concrete Pre-placement" → match hold_points where work_type contains "Concrete" → auto-link HP-02 with trigger "Before concrete placement" and spec reference
+
+### Weather Threshold Check
+Before scheduling outdoor inspections:
+- Read `specs-quality.json` → `weather_thresholds[]` → match by the inspection's work type
+- Cross-check forecasted weather against `min_temp`, `max_temp`, `max_wind`, and `moisture_ok`
+- Flag if weather conditions may prevent the inspection or the underlying work (e.g., concrete pour inspection + temp < 40°F cold weather threshold)
+- Include mitigation measures from the spec when flagging
+
+### Spec Section Deep-Link
+When an inspection type is identified:
+- Read `specs-quality.json` → `spec_sections[]` → find the matching CSI section
+- Pull specific `testing` requirements (frequency, type, agency), acceptance criteria from `key_req`, and required documentation
+- Auto-populate inspection notes with testing protocol and acceptance criteria
+- Example: Compaction inspection → pull "95% modified Proctor, testing every 500 CY" from spec section
+
+### Schedule Activity Linking (Enhanced)
+- Read `schedule.json` → `critical_path[]` and `milestones[]` → match inspection date/type to schedule activities
+- Auto-link inspection to schedule activity and flag if the activity is on the critical path
+- If critical path: add note "Critical path activity — inspection delay will impact project completion"
+
+### Drawing Reference
+When inspection location is identified:
+- Read `plans-spatial.json` → `sheet_cross_references.drawing_index[]` → find relevant structural/MEP drawings for the inspection location and discipline
+- Include referenced sheet numbers in inspection record for field use
+- Example: Foundation inspection at Grid C-3 → reference sheets S2.1, S5.1
+
 ## Re-Inspection Workflow
 
 When inspection result = `fail`:

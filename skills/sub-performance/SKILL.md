@@ -391,6 +391,53 @@ COMPOSITE SCORE = (Schedule × 0.25) + (Quality × 0.25) + (Safety × 0.20)
 ---
 
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-populate scorecard data from project files instead of requiring manual data collection for each scoring dimension.
+
+### Sub Roster
+Build the complete subcontractor list from directory:
+- Read `directory.json` → `subcontractors[]` → get complete sub list with trade, contract scope, contact info, and contract amount
+- Auto-populate scorecard headers with sub name, trade, contract value, and mobilization date
+- Example: Walker Construction — Excavation/Sitework — $185,000 — Mobilized 01/21/26
+
+### Schedule Adherence (25% Weight)
+Pull attendance and milestone data for schedule scoring:
+- Read `daily-report-data.json` → crew attendance records → calculate days present vs. scheduled for each sub
+- Read `schedule.json` → planned activities → compare against actual work logged in daily reports
+- Read `labor-tracking.json` → `crew_summaries[]` → verify promised crew headcount vs. actual on-site headcount
+- Calculate PPC by trade from weekly commitment tracking data
+- Example: Walker scheduled 20 work days, present 18 → 90% attendance; PPC 87% → Schedule Score: 8
+
+### Quality Score (25% Weight)
+Aggregate quality metrics from inspection and punch data:
+- Read `inspection-log.json` → filter by sub → calculate pass/fail rates per sub (FPIR)
+- Read `quality-data.json` → `quality_metrics` → pull FPIR and corrective action count per trade
+- Read `punch-list.json` → filter by `responsible_sub` → count punch items per 1,000 SF for each sub
+- Example: EKD — 91% FPIR, 8 punch items per 1,000 SF, 2% rework rate → Quality Score: 8
+
+### Safety Score (20% Weight)
+Pull safety records from safety log:
+- Read `safety-log.json` → `recordable_incidents[]` → filter by sub → count recordable incidents per sub
+- Read `safety-log.json` → `near_misses[]` → filter by sub → count near-miss events
+- Read `safety-log.json` → `toolbox_talks[]` → calculate attendance rate per sub's crew
+- Read `daily-report-data.json` → housekeeping and PPE compliance observations per sub
+- Example: Walker — zero recordables, 1 near-miss, 100% toolbox talks, 100% PPE → Safety Score: 10
+
+### Responsiveness (15% Weight)
+Calculate turnaround times from RFI and submittal logs:
+- Read `rfi-log.json` → filter by originating sub → calculate average days from `date_issued` to response
+- Read `submittal-log.json` → filter by sub → calculate average submittal turnaround time and resubmission rate
+- Flag subs with average RFI response > 7 days or submittal turnaround > 14 days as "at risk" responsiveness
+- Example: Schiller — RFI avg 12 days, submittal avg 24 days (OVERDUE) → Responsiveness Score: 2
+
+### Crew Productivity
+Benchmark productivity against plan quantities:
+- Read `labor-tracking.json` → `productivity_ratios[]` → pull output-per-labor-hour by trade and sub
+- Compare against industry benchmarks or project-specific targets
+- Flag subs with productivity ratio below 80% of benchmark for performance discussion
+- Example: W Principles concrete — 0.85 CY/labor-hour vs. benchmark 1.0 CY/labor-hour → 85% of benchmark → flag for review
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

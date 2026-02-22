@@ -84,6 +84,32 @@ Budgets are organized by **CSI Division** to align with project specifications a
 | **forecast_to_complete** | Estimated cost to finish remaining work | $110,000 |
 | **total_forecast** | Invoiced + forecast to complete | $195,000 |
 
+## Budget Initialization
+
+When the superintendent first sets up cost tracking via `/cost`, initialize `cost-data.json` with:
+
+**Required fields:**
+- `original_contract_value` (number) — Total contract amount from the executed contract
+- `budget_by_division[]` — Array of CSI division budget line items, each with:
+  - `division` (string) — CSI division code (e.g., "03", "04", "05")
+  - `description` (string) — Division name (e.g., "Concrete", "Masonry", "Metals")
+  - `original_amount` (number) — Original budget for this division
+  - `current_amount` (number) — Current budget (original + approved COs)
+  - `committed_costs` (number) — Subcontract + PO amounts
+  - `applied_cos[]` (array) — Change orders applied to this division, each referencing `change-order-log.json` entries
+- `contingency` (object):
+  - `original_amount` (number) — Starting contingency
+  - `current_amount` (number) — Remaining after draws
+  - `draws[]` (array) — Each draw with date, amount, description, CO reference
+- `allowances[]` (array) — Contract allowances with original vs. spent tracking
+
+**Schedule of Values (SOV) linkage:**
+- Each division line item links to `pay-app-log.json` SOV line items via `sov_line_number`
+- Percent complete per line feeds earned value calculations in `earned-value-management`
+- SOV structure: `sov_line_number`, `description`, `scheduled_value`, `work_completed_previous`, `work_completed_this_period`, `materials_presently_stored`, `total_completed_and_stored`, `percent_complete`, `balance_to_finish`, `retainage`
+
+---
+
 ## Cost Performance Index (CPI) Calculation
 
 The **Cost Performance Index** measures how efficiently the project is spending money:
@@ -291,6 +317,40 @@ Example:
 }
 ```
 
+
+## Project Intelligence Integration
+
+When project intelligence is loaded, cross-reference cost data against extracted quantities, schedule progress, and procurement to identify cost risks early.
+
+### Quantity Verification
+Compare budgeted quantities against plan-extracted quantities:
+- Read `plans-spatial.json` → `quantities` → for each CSI division, sum the relevant quantities (concrete CY, wall SF, flooring SF, fixture counts, etc.)
+- Compare against budget line items in `cost-data.json` → `budget_by_division[]`
+- Calculate: Plan quantity × estimated unit rate vs budget amount
+- Flag divisions where plan quantities exceed budget quantities by >5% — this indicates the estimate may have missed scope
+- Example: Division 03 budget assumes 38 CY total concrete, but plans-spatial.json quantities show 42.3 CY → flag 11% overage for review
+
+### Schedule-Cost Alignment
+Cross-check cost progress against schedule progress:
+- Read `schedule.json` → `percent_complete` → overall project progress
+- Compare with cost % complete per division: (invoiced_costs / current_amount) for each budget line
+- Flag front-loading: If cost % complete significantly exceeds schedule % complete for a division, the sub may be overbilling
+- Flag lagging: If cost % complete is far below schedule % complete, work may be unbilled or behind
+- Example: Schedule 25% complete, Division 03 (Concrete) 40% billed → possible front-loading
+
+### Change Order Linkage
+Verify change order cost impacts are properly reflected in budget:
+- Read `change-order-log.json` → for each CO with status "approved"
+- Check that the CO's `cost_approved` amount appears in the correct budget division's `applied_cos[]` array
+- Flag any approved COs not yet reflected in budget divisions
+- Example: CO-005 approved for $17,800 affecting Division 26 → verify Division 26 `applied_cos` includes CO-005
+
+### Procurement Cost Tracking
+Compare committed material costs against budget line items:
+- Read `procurement-log.json` → sum `total_cost` by spec section → map to CSI divisions
+- Compare against budget division `committed_costs`
+- Flag material cost overruns before they hit invoicing
+- Example: Procurement for Division 05 (Steel) totals $88,500 committed, but budget shows $85,000 → flag $3,500 (4.1%) material cost overrun
 
 ---
 

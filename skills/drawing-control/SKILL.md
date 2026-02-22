@@ -362,6 +362,49 @@ The skill automatically initiates re-distribution when:
 
 ---
 
+## 6. As-Built Drawing Integration
+
+When processing as-built or record drawings, the drawing-control skill connects revision tracking data to the closeout documentation pipeline. As-built markups must be reconciled against the current revision of every sheet before project closeout can be certified.
+
+### As-Built Data Source
+
+```
+Read plans-spatial.json → as_built_overlay
+```
+
+### Per-Sheet As-Built Tracking
+
+Track as-built markup status per sheet in `drawing-log.json → as_built_status[]`. For each drawing sheet, record the following fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `as_built_markup` | string | Status: `none`, `in-progress`, or `complete` |
+| `deviations_count` | number | Total deviations from the issued-for-construction drawing |
+| `markup_by` | string | Name of person who marked up the as-built |
+| `markup_date` | ISO 8601 date | Date the as-built markup was completed |
+| `reviewed_by` | string | Name of person who reviewed the as-built markup |
+| `review_date` | ISO 8601 date | Date the review was completed |
+
+### Revision Cross-Reference
+
+Cross-reference as-built deviations against the current revision of each sheet — deviations should reference the latest revision number. If a sheet has been revised via ASI since the last as-built markup, the markup must be re-verified against the new revision before it can be marked `complete`.
+
+### Deviation Cause Linkage
+
+Link deviation causes to upstream change documentation:
+
+- **RFI-directed changes** → `rfi-log.json` (deviations that resulted from RFI responses or field clarifications)
+- **CO-directed changes** → `change-order-log.json` (deviations that resulted from approved change orders)
+
+This linkage ensures every as-built deviation is traceable to its authorization source.
+
+### Closeout Completeness Check
+
+Flag sheets where as-built markup is still `none` or `in-progress` as **closeout-incomplete**. These sheets must be resolved before the drawing package can be submitted for final owner acceptance. The `/drawings status` report should include an as-built completeness column during the closeout phase.
+
+### Reference
+
+For detailed as-built data extraction rules, see `document-intelligence/references/as-built-extraction.md`.
 
 ---
 

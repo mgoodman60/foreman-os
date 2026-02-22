@@ -114,6 +114,39 @@ When project intelligence is loaded, resolve casual references to official data:
 - "rebar" → "ASTM A615 Grade 60" (from key materials)
 - Generic terms → enrich with spec data if available
 
+### Spec-Based Enrichment
+When a work type is identified from the intake entry (e.g., "poured footings", "hung drywall", "pulled wire"):
+- Read `specs-quality.json` → `spec_sections[]` → find the matching CSI section for the work type
+- Pull key requirements: concrete mix design, testing frequency, acceptance criteria
+- Add as enrichment context in the classified entry (not displayed to user unless relevant)
+- Example: "poured footings" → pull Section 03 30 00, mix design 4000 PSI, testing every 50 CY
+
+### Schedule-Aware Context
+When an activity is mentioned in an intake entry:
+- Read `schedule.json` → `critical_path[]` → check if the logged activity matches a critical path item
+- If on critical path: add `critical_path: true` flag to the intake entry for emphasis in the daily report
+- Example: "Steel erection started" + critical_path includes "PEMB Erection" → flag entry as critical path activity
+
+### Weather-Work Cross-Check
+When outdoor work is logged AND weather has been reported for today:
+- Read `specs-quality.json` → `weather_thresholds[]` → match the work type
+- Cross-check today's reported weather against the threshold
+- If threshold exceeded: auto-flag in the intake entry: "Note: Today's temp (35°F) is below the 40°F minimum for concrete placement per Spec 03 30 00"
+- Do not block the entry — just flag for awareness
+
+### Quantity Context
+When work with measurable output is logged (concrete poured, flooring installed, outlets wired):
+- Read `plans-spatial.json` → `quantities` → find the total plan quantity for that element type
+- Add total plan quantity as context: "12 CY poured today of 42.3 CY total footings (28%)"
+- This enables automatic progress percentage calculations in the daily report
+
+### Inspection Reminder
+When the logged work type has a hold point in the specs:
+- Read `specs-quality.json` → `hold_points[]` → match the work type
+- If a hold point exists and the work is at the trigger stage: prompt the superintendent
+- "Concrete pre-placement — did this need an inspection before proceeding? (Hold point HP-02)"
+- Accept dismissal — this is a reminder, not a blocker
+
 ### Sub Absence Detection
 
 When the user mentions a sub is absent ("nobody from the plumber", "electricians didn't show", "Walker was a no-show", "[sub] not on site"):

@@ -250,6 +250,28 @@ SUBMITTAL STATUS — ALERTS ONLY (3 items at risk)
     Action: No urgent action; normal tracking
 ```
 
+## Project Intelligence Integration
+
+When reviewing submittals or generating alerts, automatically enrich with data from the project intelligence store. These cross-references improve review accuracy and catch procurement/schedule risks early.
+
+### Procurement Lead Time Enrichment
+Read `procurement-log.json` → For each submittal, look up the corresponding procurement entry by `submittal_id`. Pull `expected_delivery`, `lead_time_weeks`, and `delivery_status` → auto-populate `fabrication_days` and `material_lead_time_days` in the submittal record. If procurement entry shows `delivery_status` = "delayed", escalate the submittal alert tier accordingly.
+
+### Sub Contact Resolution
+Read `directory.json` → `subcontractors[]` → When a submittal is overdue or needs follow-up, resolve the responsible sub's foreman name, phone, and email from the directory. Auto-fill contact information in alert action items: "Contact {foreman} at {phone} ({sub_name}) to expedite SUB-{id}."
+
+### Inspection Hold Point Linking
+Read `specs-quality.json` → `hold_points[]` → For each submittal's `spec_section`, check if any hold points require submittal approval before the inspection can proceed. Flag linked hold points: "SUB-{id} approval is a prerequisite for hold point HP-{hp_id} ({inspection_name}). Inspection cannot proceed until this submittal is approved."
+
+### Cost Impact Flagging
+Read `cost-data.json` → For submittals linked to critical path activities or high-value budget line items, show the budget amount at risk if approval is delayed. Include in alert output: "Budget line item {division} — {description}: ${amount} at risk if SUB-{id} delays procurement by {N} days."
+
+### Quality Test Correlation
+Read `quality-data.json` → After a submittal is approved (status = "approved"), link subsequent material test results back to the approved submittal. For example, an approved concrete mix design (SUB-XXX) should be cross-referenced when 7-day and 28-day break results arrive: "Break test results for {mix_id} — 28-day f'c = {value} PSI vs. approved design f'c = {design_value} PSI. Status: {pass/fail}."
+
+### Installation Verification
+Read `daily-report-data.json` → Flag if materials from a submittal are documented as installed in a daily report before the submittal status = "approved": "WARNING: {material} from SUB-{id} appears installed per daily report #{report_number} on {date}, but submittal status is still '{status}'. Verify approval before installation proceeds."
+
 ### Submittal-Log Data Structure
 
 For lead-time tracking, each submittal in `submittal-log.json` must include:

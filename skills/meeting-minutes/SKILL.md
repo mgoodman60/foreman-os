@@ -288,6 +288,50 @@ config.last_meeting_date     → Date of most recent meeting
 - **carry_forward_items[]**: Explicit list of items carried from previous meeting. Differentiates carry-forward from newly created items.
 - **linked_rfi / linked_co / linked_submittal**: Cross-references to related project documents. Enables quick navigation from meeting minutes to RFI/CO/submittal tracking.
 
+## Project Intelligence Auto-Population
+
+When project intelligence is loaded, auto-populate meeting agenda sections with current project data to save time and ensure accuracy.
+
+### Schedule Update Section
+Before or during progress/OAC meetings:
+- Read `schedule.json` → `current_phase`, `percent_complete`, `milestones[]`
+- Auto-populate schedule status: current phase, overall % complete, upcoming milestones (next 30 days), any milestones at risk
+- Read `schedule.json` → `critical_path[]` → list critical path activities and their status
+- Example: "Schedule Status: Foundation phase, 22% complete. Upcoming: Steel delivery 3/1, PEMB erection start 3/8."
+
+### RFI/Submittal Status Tables
+For OAC and progress meetings:
+- Read `rfi-log.json` → count RFIs by status (open, overdue >14 days, resolved this week)
+- Read `submittal-log.json` → count submittals by status (pending review, overdue >10 days, approved this week)
+- Auto-populate status tables with counts and highlight overdue items
+- Example: "RFIs: 3 open (1 overdue >14 days), 2 resolved this week. Submittals: 5 under review (1 overdue), 3 approved."
+
+### Change Order Status
+For OAC meetings:
+- Read `change-order-log.json` → group COs by status (draft, submitted, under_review, approved)
+- Auto-populate CO section with pending CO count, total pending cost exposure, recently approved COs
+- Example: "Change Orders: 2 pending review ($23,500 exposure), 1 approved this week (CO-005, $17,800)."
+
+### Action Item Carry-Forward
+For all meeting types:
+- Read `meeting-log.json` → pull all action items where `status` != "closed" from previous meetings
+- Auto-populate carry-forward section with item ID, description, assignee, due date, and days overdue
+- Calculate aging: items open >14 days highlighted, items open >30 days flagged critical
+- Example: "5 carry-forward items (2 overdue): AI-0045 — Review MEP coordination (Tom Jones, 8 days overdue)"
+
+### Weather Summary
+For progress meetings:
+- Read `daily-report-data.json` → pull weather data from all reports in the meeting period
+- Summarize: average temp range, precipitation days, any weather delays
+- Example: "Weather this week: Highs 42-55°F, lows 28-35°F. 1 rain day (Tuesday). No weather delays."
+
+### Safety Summary
+For all meeting types (safety moment section):
+- Read `safety-log.json` → pull incident count, near-miss count for the period
+- Calculate TRIR from `osha_300_log` if available
+- Read `safety-log.json` → `toolbox_talks[]` → count talks held this period
+- Example: "Safety: 0 recordable incidents, 3 near-misses reported, 5 toolbox talks held. TRIR: 0.0 YTD."
+
 ## Trigger Phrases
 The skill activates on phrases like:
 - "Take meeting minutes"

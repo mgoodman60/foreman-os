@@ -380,6 +380,38 @@ DISTRIBUTION:
   Safety Manager, Project Manager, Owner, Subcontractor, Foreman
 ```
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-enrich safety management with spec-based hazard data, location context, and subcontractor safety profiles.
+
+### Activity-Based Weather Alerts
+When today's weather is known and outdoor work is active:
+- Read `specs-quality.json` → `weather_thresholds[]` → check all active work types
+- Cross-reference today's temperature, wind, and precipitation against each threshold
+- Auto-flag if any threshold is exceeded: "Cold weather alert: Concrete placement today at 35°F — below 40°F minimum per Spec 03 30 00. Cold weather measures required."
+- Include `mitigation_measures` from the spec in the alert
+- Surface weather alerts in `/morning-brief` and `/daily-report` safety sections
+
+### Safety Zone Mapping
+When creating JSAs or conducting safety inspections:
+- Read `specs-quality.json` → `safety` → pull `fall_protection_zones[]`, `confined_spaces[]`, `hot_work_areas[]`, `crane_exclusion_zones[]`, `overhead_power_lines[]`
+- Auto-populate JSA location hazards based on the work area's proximity to safety zones
+- Example: Work at Grid C-3 near `crane_exclusion_zones` → auto-include crane hazard in JSA
+
+### Location-Based Hazard Context
+When logging an incident or near-miss:
+- Read `plans-spatial.json` → resolve incident location to grid reference using building_areas and room_schedule
+- Read `plans-spatial.json` → `site_utilities` → identify nearby underground utilities (storm, sanitary, water, gas, electrical) for utility strike context
+- Auto-include utility proximity data in incident investigation when the incident involves excavation or ground disturbance
+- Example: Incident at Grid B-2 → site_utilities shows 6" gas line at Grid B-3 → flag proximity for root cause analysis
+
+### Sub Safety Performance
+When conducting pre-task planning or toolbox talks:
+- Read `directory.json` → `subcontractors[]` → match the active sub
+- Pull sub's status, trade, and scope for context
+- Cross-reference with `safety-log.json` → filter incidents by sub's company name → calculate sub-specific incident count and near-miss ratio
+- Include sub safety performance in pre-task safety briefing context
+
 ### Integration with Daily Reports
 
 Safety incidents auto-populate in daily reports:

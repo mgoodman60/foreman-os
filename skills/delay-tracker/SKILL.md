@@ -371,6 +371,52 @@ Required fields for critical path analysis:
 ---
 
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-enrich delay entries with schedule impact analysis, weather verification, cost calculations, and historical context from project data files.
+
+### Critical Path Impact
+Automatically assess whether a delay extends the critical path or absorbs float:
+- Read `schedule.json` → `critical_path[]` → when a delay affects an activity, check if it is on the critical path (zero float) vs. has float to absorb
+- Calculate: `extension_days_earned` = MAX(0, delay_days - available_float)
+- Auto-populate delay log entry with `critical_path_impact`, `float_consumed_days`, and `extension_days_earned`
+- Example: 5-day delay on activity with 3 days float → float_consumed=3, extension_earned=2, impact="partial"
+
+### Weather Delay Verification
+Verify reported weather delays against contractual thresholds:
+- Read `specs-quality.json` → `weather_thresholds[]` → for the affected work type, pull the specific temperature/wind/rain threshold
+- Compare against actual weather conditions from `daily-report-data.json` → `weather` records for the delay period
+- Auto-classify as "excusable" if actual conditions exceeded contractual thresholds
+- Example: Concrete pour delayed, threshold is min 40F → daily report shows 33F high → excusable weather delay confirmed
+
+### Contemporaneous Weather Records
+Build defensible weather documentation from daily reports:
+- Read `daily-report-data.json` → filter by date range of the delay → extract weather observations (temperature, precipitation, wind)
+- Cross-reference with NOAA 30-year baseline data for the project location
+- Auto-populate delay log with contemporaneous weather records for claims support
+- Example: Feb 10-14 delay → daily reports show: 10th=28F/snow, 11th=31F/ice, 12th=35F/rain, 13th=38F/clear, 14th=42F/clear → 3 weather days documented
+
+### Cost Impact Calculation
+Calculate the financial impact of each delay:
+- Read `cost-data.json` → pull general conditions daily rate (site supervision, equipment rental, temporary facilities)
+- Calculate: delay_days × daily_GC_rate = delay cost (crew standby, equipment idle, extended general conditions)
+- Read `labor-tracking.json` → identify crews on standby during delay → add standby labor cost
+- Example: 3-day weather delay × $2,800/day GC rate + $1,200 standby labor = $9,600 delay cost
+
+### Related Delays
+Surface prior delays with same cause type for cumulative impact:
+- Read `delay-log.json` → `delay_events[]` → filter by matching delay type → surface prior delays with same cause
+- Calculate cumulative delay days by type for pattern analysis and cumulative impact claims
+- Flag when cumulative delays of one type exceed 10 days → recommend formal delay claim preparation
+- Example: 3rd weather delay this month → cumulative 11 weather days → flag for formal extension request
+
+### Schedule Float Analysis
+Show remaining float context for the affected activity:
+- Read `schedule.json` → for the affected activity, pull total float, free float, and predecessor/successor relationships
+- Show whether the delay pushes the activity onto the critical path or merely reduces float cushion
+- Auto-update float values after recording the delay
+- Example: Activity had 8 days total float before this 5-day delay → remaining float = 3 days → activity now near-critical
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

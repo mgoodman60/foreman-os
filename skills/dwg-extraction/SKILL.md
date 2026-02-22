@@ -236,12 +236,64 @@ When invoked from /process-docs or /set-project, this skill runs automatically f
 .dwg files found in the project folder. The extracted data integrates seamlessly with
 data from other document types (PDFs, specs, schedules).
 
+## Civil 3D Proprietary Object Limitations
+
+The DWG extraction pipeline uses libredwg (open-source) to convert DWG to DXF, then
+`parse_dxf.py` to extract entities. libredwg cannot decode Autodesk Civil 3D proprietary
+objects because they use undocumented internal formats.
+
+### Affected Object Types
+
+| Civil 3D Object | DWG Entity Type | What It Contains | Impact |
+|-----------------|----------------|-----------------|--------|
+| Alignments | `AcDbAlignment` | Road centerlines, curve data, stationing | Cannot extract road geometry or station values |
+| Surfaces | `AcDbSurface` / `AcDbTinSurface` | Terrain models, contours, spot elevations | Cannot extract existing/proposed grade data |
+| Pipe Networks | `AcDbPipeNetwork` | Storm/sanitary pipe routing, structures | Cannot extract pipe sizes, inverts, manholes from network objects |
+| Corridors | `AcDbCorridor` | Road cross-sections, assemblies | Cannot extract road design details |
+| Parcels | `AcDbParcel` | Property boundaries, lot lines | Cannot extract parcel data |
+| Profile Views | `AcDbProfileView` | Vertical alignments, profile grades | Cannot extract profile/grade information |
+| Pressure Pipes | `AcDbPressurePipe` | Water distribution networks | Cannot extract water system layout from network objects |
+
+### What DOES Work
+
+- Standard DXF entities (LINE, POLYLINE, CIRCLE, ARC, TEXT, MTEXT, INSERT, ATTRIB) are fully supported
+- Civil 3D drawings typically contain BOTH proprietary objects AND standard entities (labels, annotations, hatches)
+- Layer names, text labels, and attribute data from standard entities are extractable even in Civil 3D files
+- Block insertions (manholes, valves, hydrants as blocks) work normally
+
+### Workaround — Export to Clean DXF from AutoCAD
+
+If the design team has AutoCAD Civil 3D, request a DXF export with these settings:
+1. In Civil 3D, use `EXPORTTOAUTOCAD` command (not `SAVEAS DXF`)
+2. This "explodes" Civil 3D objects into standard AutoCAD entities:
+   - Alignments become polylines with station labels as text
+   - Surfaces become 3D faces or contour polylines
+   - Pipe networks become lines/circles with attribute data
+3. The resulting DXF is fully parseable by `parse_dxf.py`
+
+### Alternative: Request PDF + DXF Combo
+
+- Ask the design team for both DXF (for spatial data) and PDF plans (for annotations/details)
+- `document-intelligence` extracts text/tables from PDFs
+- `dwg-extraction` extracts geometry from the DXF
+- Utility reconciliation (Pattern 7 in cross-reference-patterns.md) merges both sources
+
+### Detection
+
+When `parse_dxf.py` encounters unknown entity types, it logs them as warnings:
+```
+WARNING: Skipped entity type 'AcDbAlignment' at handle 0x1A3 (Civil 3D proprietary)
+WARNING: Skipped entity type 'AcDbTinSurface' at handle 0x2B7 (Civil 3D proprietary)
+```
+If >20% of entities in a file are skipped proprietary objects, flag for superintendent with
+recommendation to request `EXPORTTOAUTOCAD` DXF from the design team.
+
 ## Limitations
 
-- **Civil 3D proprietary objects**: Surfaces, alignments, corridors, and pipe networks stored
-  as AcDb* objects are not fully decoded. The skill extracts the standard DXF entities that
-  Civil 3D writes alongside these objects, which typically contains all the annotation data
-  (elevations, labels, keynotes).
+- **Civil 3D proprietary objects**: See the detailed section above. In short, surfaces, alignments,
+  corridors, and pipe networks stored as AcDb* objects are not decoded by libredwg. The skill
+  extracts the standard DXF entities that Civil 3D writes alongside these objects, which typically
+  contains all the annotation data (elevations, labels, keynotes). Use `EXPORTTOAUTOCAD` as a workaround.
 - **3D solids**: Complex 3D geometry (ACIS solids, meshes) is catalogued but not deeply parsed.
 - **External references (XREFs)**: The skill processes the host DWG only. If critical data is
   in XREFs, they need to be bound or provided as separate files.

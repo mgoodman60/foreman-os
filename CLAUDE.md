@@ -49,16 +49,49 @@ Example chain: `/log` command → reads `intake-chatbot` skill + `project-data` 
 - The `project-data` skill (`skills/project-data/SKILL.md`) is the central data backbone — nearly every command reads it first
 
 ### Data Flow
-Documents → `document-intelligence` skill (three-pass extraction) → structured JSON files → consumed by all other commands/skills. The multi-file data store includes:
+Documents → `document-intelligence` skill (three-pass extraction) → structured JSON files → consumed by all other commands/skills. The multi-file data store includes 23 JSON files:
 - `project-config.json` — master config, folder mapping, document tracking
 - `plans-spatial.json` — grid lines, rooms, quantities, site layout
 - `specs-quality.json` — spec sections, materials, thresholds, tolerances
 - `schedule.json` — milestones, critical path, lookahead history
 - `directory.json` — subs, vendors, assignments
 - Various `*-log.json` files for RFIs, submittals, procurement, delays, etc.
+- `cost-data.json`, `safety-log.json`, `labor-tracking.json`, `quality-data.json`, `daily-report-data.json`, `daily-report-intake.json`, `visual-context.json`, `rendering-log.json`, `drawing-log.json`
+
+#### Pipeline Reference Documentation
+The `project-data` skill has three reference documents that map the entire extraction pipeline:
+- **`skills/project-data/references/json-schema-reference.md`** — Complete schema for all 23 JSON files with producer/consumer mapping per field (which skills write, which skills read)
+- **`skills/project-data/references/data-flow-map.md`** — Pipeline architecture with ASCII diagrams: Documents → document-intelligence → JSON store → downstream skills, plus the DWG and quantitative pipelines
+- **`skills/project-data/references/cross-reference-patterns.md`** — Seven codified cross-referencing patterns (Sub→Scope→Spec→Inspection, Location→Grid→Area→Room, WorkType→Weather→Threshold, Element→AssemblyChain→MultiSheet, RFI→Submittal→Procurement, Assembly→Schedule→EarnedValue, DualSource→UtilityReconciliation)
+
+#### Downstream Skill Auto-Population
+Twenty-one downstream skills have explicit "Project Intelligence Integration" sections that tell the AI exactly which JSON files and field paths to read for auto-populating data. This eliminates guesswork — each skill names its data sources:
+- `punch-list` — location from plans-spatial, sub from directory, spec cross-ref, drawing ref, schedule impact
+- `inspection-tracker` — hold points from specs-quality, weather check, spec deep-link, schedule activity, drawing ref
+- `safety-management` — weather alerts from specs-quality, safety zones, utility locations, sub safety performance
+- `cost-tracking` — quantity verification from plans-spatial, schedule-cost alignment, CO linkage, procurement tracking
+- `labor-tracking` — location from plans-spatial, employer from directory, productivity benchmarking, daily report cross-validation, cost code mapping
+- `meeting-minutes` — schedule update, RFI/submittal status, CO status, action item carry-forward, weather + safety summaries
+- `change-order-tracker` — schedule impact from schedule.json, cost context from cost-data, spec linking, drawing ref, sub identification
+- `intake-chatbot` — spec enrichment, schedule awareness, weather-work cross-check, quantity context, inspection reminders
+- `earned-value-management` — budget baseline from cost-data, schedule baseline from schedule.json, actual costs from labor-tracking + procurement-log, earned value from cost-data percent complete, CO adjustments, forecast validation against delay-log
+- `rfi-preparer` — location from plans-spatial, drawing refs from sheet_cross_references, spec section from specs-quality, team routing from directory, numbering from rfi-log, related items cross-ref
+- `quality-management` — spec-based checklists from specs-quality, hold points, location from plans-spatial, sub QC contact from directory, FPIR trends from quality-data, drawing refs
+- `risk-management` — schedule risks from schedule.json critical path/float, weather thresholds from specs-quality, sub performance from directory + quality-data, contingency context from cost-data, delay patterns from delay-log, procurement risks from procurement-log
+- `last-planner` — activity pool from schedule.json, sub availability from directory + labor-tracking, location constraints from plans-spatial, weather from specs-quality thresholds, material readiness from procurement-log, prerequisite inspections from specs-quality hold points + inspection-log
+- `sub-performance` — sub roster from directory, schedule adherence from daily-report-data + schedule.json + labor-tracking, quality from inspection-log + quality-data + punch-list, safety from safety-log, responsiveness from rfi-log + submittal-log, productivity from labor-tracking
+- `delay-tracker` — critical path impact from schedule.json, weather verification from specs-quality thresholds + daily-report-data, cost impact from cost-data + labor-tracking, related delays from delay-log, float analysis from schedule.json
+- `look-ahead-planner` — activity extraction from schedule.json, predecessor tracking, sub mobilization from directory, material delivery from procurement-log, inspection prerequisites from specs-quality hold points + inspection-log, weather restrictions from specs-quality thresholds
+- `report-qa` — punch list cross-check from punch-list.json, cost authorization from change-order-log, procurement verification from procurement-log, quality correlation from quality-data, safety incident cross-check from safety-log, schedule milestone validation from schedule.json, weather threshold verification from specs-quality
+- `submittal-intelligence` — procurement lead time from procurement-log, sub contact from directory, hold point linking from specs-quality, cost impact from cost-data, quality test correlation from quality-data, installation verification from daily-report-data
+- `closeout-commissioning` — warranty tracking from quality-data warranties, commissioning test results from quality-data system_tests, O&M manual completeness from quality-data equipment_data, as-built drawing status from plans-spatial as_built_overlay
+- `drawing-control` — as-built markup status per sheet in drawing-log, deviation cross-reference against rfi-log and change-order-log, closeout completeness flagging, links to as-built-extraction.md
+- `quality-management` — material test result verification from quality-data test_results (concrete, steel, soil, welding), specimen traceability against procurement-log delivery_tickets
 
 ### Python Reference Scripts and Executable Scripts
 Five Python files exist under `skills/document-intelligence/references/` and `skills/quantitative-intelligence/references/` — these are reference implementations for visual plan analysis, sheet cross-referencing, and calculation bridging. They are not executed directly by the plugin but serve as reference code for the AI.
+
+The `skills/quantitative-intelligence/references/calculation-workflow.md` documents how downstream skills should request calculations from the 10 calculator classes (ConcreteVolumeCalc, WallAreaCalc, RoomAreaCalc, PipeRunCalc, FootingCalc, SlabCalc, RoofCalc, PEMBCalc, SymbolCountCalc, AggregateCalc), including source priority levels and confidence scoring.
 
 The `skills/dwg-extraction/scripts/` directory contains executable scripts that ARE run directly:
 - `compile_libredwg.sh` — Compiles the libredwg C library from GitHub source (cached at `/tmp/libredwg/dwg2dxf`)

@@ -13,11 +13,29 @@ Output: JSON file with categorized entities organized by layer group.
 """
 
 import json
+import logging
 import re
 import sys
 import math
 from collections import defaultdict
 from datetime import datetime
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
+
+
+# ── Civil 3D Proprietary Object Types ────────────────────────────────
+# These entity types use undocumented Autodesk internal formats and
+# cannot be decoded by libredwg or parsed from DXF output. See the
+# "Civil 3D Proprietary Object Limitations" section in SKILL.md.
+
+CIVIL3D_PROPRIETARY_TYPES = {
+    'ACDBALIGNMENT', 'ACDBSURFACE', 'ACDBTINSURFACE', 'ACDBPIPENETWORK',
+    'ACDBCORRIDOR', 'ACDBPARCEL', 'ACDBPROFILEVIEW', 'ACDBPRESSUREPIPE',
+    'ACDBPROFILE', 'ACDBASSEMBLY', 'ACDBSUBASSEMBLY', 'ACDBFEATURELINE',
+    'ACDBGRADING', 'ACDBINTERFERENCE', 'ACDBSAMPLELINE', 'ACDBSECTIONVIEW',
+    'AABORNEENTITY', 'ABORNEENTITY',
+}
 
 
 # ── Layer Classification ──────────────────────────────────────────────
@@ -89,6 +107,7 @@ def parse_entities_section(lines):
     """
     entities = defaultdict(list)
     layers = set()
+    skipped_proprietary = defaultdict(int)  # Track Civil 3D proprietary entity counts
 
     # Find ENTITIES section
     in_entities = False
@@ -211,7 +230,27 @@ def parse_entities_section(lines):
                 i += 2
                 continue
             else:
-                # Unknown entity type — skip
+                # Unknown entity type — check if it's a Civil 3D proprietary object
+                normalized = value.upper().replace(' ', '')
+                if normalized in CIVIL3D_PROPRIETARY_TYPES:
+                    # Extract handle if available for diagnostic logging
+                    handle_str = ''
+                    peek = i + 2
+                    while peek < len(lines) - 1 and peek < i + 20:
+                        try:
+                            peek_code = int(lines[peek].strip())
+                        except ValueError:
+                            peek += 1
+                            continue
+                        if peek_code == 5:  # DXF group code 5 = entity handle
+                            handle_str = f" at handle 0x{lines[peek + 1].strip()}"
+                            break
+                        peek += 2
+                    logger.warning(
+                        "Skipped entity type '%s'%s (Civil 3D proprietary)",
+                        value, handle_str
+                    )
+                    skipped_proprietary[value] += 1
                 current_type = None
                 current_entity = None
                 i += 2
@@ -327,6 +366,28 @@ def parse_entities_section(lines):
             layers.add(value)
 
         i += 2
+
+    # Report Civil 3D proprietary object summary
+    if skipped_proprietary:
+        total_skipped = sum(skipped_proprietary.values())
+        total_parsed = sum(len(v) for v in entities.values())
+        total_all = total_parsed + total_skipped
+        skip_pct = (total_skipped / total_all * 100) if total_all > 0 else 0
+
+        logger.warning(
+            "Skipped %d Civil 3D proprietary entities (%d unique types, %.1f%% of total):",
+            total_skipped, len(skipped_proprietary), skip_pct
+        )
+        for etype, count in sorted(skipped_proprietary.items(), key=lambda x: -x[1]):
+            logger.warning("  %s: %d", etype, count)
+
+        if skip_pct > 20:
+            logger.warning(
+                "ATTENTION: >20%% of entities are Civil 3D proprietary objects. "
+                "Recommend requesting EXPORTTOAUTOCAD DXF from the design team "
+                "for complete data extraction. See SKILL.md 'Civil 3D Proprietary "
+                "Object Limitations' section for details."
+            )
 
     return dict(entities), sorted(layers)
 

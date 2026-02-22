@@ -201,6 +201,31 @@ CLAIMS MODE:
 ✓ Equipment IDs captured for all equipment
 ```
 
+## Project Intelligence Integration
+
+When running QA checks, automatically cross-reference the report against the full project intelligence store. These checks supplement the category-specific checks above by catching gaps that span multiple data sources.
+
+### Punch List Cross-Check
+Read `punch-list.json` → If the daily report documents work in a location that has open punch items (`status` = "open" or "in_progress"), verify the report mentions punch item status. Flag if work is documented on punch items without an update: "Work documented at {location} where PUNCH-{id} is open. Was punch item addressed? Update punch status if so."
+
+### Cost Authorization Check
+Read `change-order-log.json` → For any new scope of work described in the report, verify it traces to an approved change order or is within original contract scope. Flag if unapproved scope work is documented: "Work on '{description}' does not match any approved CO or original contract scope. Was this authorized? If owner-directed, document the directive for CO processing."
+
+### Procurement Verification
+Read `procurement-log.json` → If the report documents materials as "installed" or "in place," verify that `procurement-log.json` shows `delivery_status` = "delivered" for those materials. Flag mismatch: "{material} documented as installed but procurement-log shows delivery_status = '{status}'. Verify material was actually received and update procurement log."
+
+### Quality Record Correlation
+Read `quality-data.json` → If the report mentions inspection results (pass/fail), verify that matching records exist in `quality-data.json` inspections. Flag if daily report mentions an inspection result not yet recorded: "Report states {inspection_type} passed at {location}, but no matching record in quality-data.json. Ensure inspection is formally logged."
+
+### Safety Incident Cross-Check
+Read `safety-log.json` → If the report documents any safety incident, near miss, or first aid event, verify a corresponding entry exists in `safety-log.json`. Flag if missing: "Safety incident '{description}' documented in daily report but not found in safety-log.json. Log the incident with `safety-management` to maintain OSHA records."
+
+### Schedule Milestone Validation
+Read `schedule.json` → `milestones[]` → If the report documents a milestone as "complete" or "achieved," verify that `schedule.json` shows the milestone status updated. Flag mismatch: "Report states '{milestone}' is complete but schedule.json still shows status = '{status}'. Update schedule to reflect completion."
+
+### Weather Threshold Verification
+Read `specs-quality.json` → `weather_thresholds[]` + daily report weather data → For each weather-sensitive work type documented in the report, cross-check the reported conditions against spec thresholds. Flag if weather-sensitive work was performed during conditions below/above thresholds and no mitigation is documented: "{work_type} performed at {temp}°F but spec threshold is {threshold}°F per {spec_reference}. No mitigation measures documented — was a protection plan in effect?"
+
 ## User Response Handling
 
 After presenting QA results:

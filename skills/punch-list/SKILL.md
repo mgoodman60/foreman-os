@@ -286,6 +286,41 @@ For each responsible sub (ABC Drywall, Ready Paint, etc.):
 7. **Priority A = 100% for Final**: Project cannot reach final sign-off without all Priority A items completed
 8. **Disputes Block Closeout**: Status = "disputed" requires resolution before completion
 
+## Project Intelligence Auto-Population
+
+When project intelligence is loaded, auto-populate punch item fields from the data store to reduce manual entry and improve accuracy.
+
+### Location Auto-Resolution
+When the user provides a room number or casual location:
+- Read `plans-spatial.json` → `room_schedule` → match `room_number`
+- Auto-fill: `building_area` from room's building area, `floor_level` from room's floor level, `grid_reference` from the building area's grid range
+- Example: User says "Room 107" → auto-fill building_area="East Wing", floor_level="Level 1", grid_reference="E-G / 3-5"
+
+### Subcontractor Auto-Resolution
+When the user names a responsible sub (by name, trade, or casual reference):
+- Read `directory.json` → `subcontractors[]` → match by name (partial match) or trade
+- Auto-fill: `responsible_sub` with full company name, resolve trade if not provided
+- Pull foreman name and phone for the sub notification workflow
+- Example: User says "Walker" → resolve to "Walker Construction", trade="Excavation/Sitework", foreman="Mike Johnson"
+
+### Spec Cross-Reference
+When a punch item's trade is identified:
+- Read `specs-quality.json` → `spec_sections[]` → find sections matching the trade's CSI division
+- Include relevant spec section number and acceptance criteria in the punch item notes for context
+- Example: trade="Concrete" → pull Section 03 30 00 tolerances and finish requirements
+
+### Drawing Reference
+When a punch item location is resolved to a grid/area:
+- Read `plans-spatial.json` → `sheet_cross_references.drawing_index[]` → find relevant sheets for that location and discipline
+- Include sheet numbers in the punch report for easy plan reference
+- Example: Location at Grid E-5, trade="Electrical" → reference sheets E-100, E-101
+
+### Schedule Impact Check
+When Priority A items exist:
+- Read `schedule.json` → `milestones[]` → check if `final_completion` or `substantial_completion` milestone is at risk
+- If open Priority A count > 0 and closeout milestone is within 30 days → flag schedule risk in punch summary
+- Include remaining Priority A items in `/morning-brief` when closeout is approaching
+
 ## Triggers & Activation Phrases
 - "punch list"
 - "punch item"

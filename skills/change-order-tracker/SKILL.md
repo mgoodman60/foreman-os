@@ -256,6 +256,42 @@ All generated documents route to project folder structure:
 - **Version History**: Logged in `project-config.json` `version_history` array
 - **Backup Copies**: `{{folder_mapping.config}}/backups/change-order-log_[TIMESTAMP].json`
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-enrich change orders with schedule impact analysis, cost context, spec references, drawing references, and subcontractor identification.
+
+### Schedule Impact Auto-Analysis
+When a CO affects a specific work scope or activity:
+- Read `schedule.json` → `critical_path[]` → check if any critical path activity matches the CO's affected scope
+- If on critical path: auto-flag `schedule_impact` and estimate days based on the change scope
+- Read `schedule.json` → `milestones[]` → check if the CO pushes any milestone at risk
+- Example: CO affects structural steel erection → critical_path includes "PEMB Erection" → auto-flag "Critical path activity — schedule impact likely"
+
+### Cost Impact Context
+When creating or reviewing a CO:
+- Read `cost-data.json` → pull `current_contract_value` and `contingency.available_contingency`
+- Display CO cost as percentage of remaining contingency: "This CO ($17,800) represents 15.5% of remaining contingency ($115,000)"
+- If CO would draw contingency below 50% threshold → flag "Contingency alert: approval would reduce contingency to 44%"
+
+### Spec Section Linking
+When a CO description mentions a work type or scope:
+- Read `specs-quality.json` → `spec_sections[]` → auto-link CO to affected spec sections
+- Include spec section numbers in `affected_spec_sections[]` for the cost proposal and documentation
+- Example: CO for "additional electrical subpanel" → auto-link spec sections 26 00 00, 26 05 00
+
+### Drawing Reference
+When a CO affects a specific location or building system:
+- Read `plans-spatial.json` → `sheet_cross_references.drawing_index[]` → find drawings related to the affected discipline and location
+- Auto-populate affected drawing numbers for the CO record and cost proposal
+- Example: CO at south wing electrical → reference sheets E-100, E-200, E-301
+
+### Sub Identification
+When a CO affects a trade scope:
+- Read `directory.json` → `subcontractors[]` → match trade or scope to the CO's affected work
+- Auto-identify the responsible sub and include their name in `affected_subs[]`
+- Pull sub's contract scope for context on whether the CO is within or outside their original scope
+- Example: CO for "additional excavation" → directory shows "Walker Construction" handles Excavation/Sitework → auto-populate affected_subs
+
 ## Error Handling & Validation
 
 - **Missing config**: Inform user to run `/set-project` first

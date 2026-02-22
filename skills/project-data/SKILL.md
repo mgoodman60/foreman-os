@@ -96,7 +96,7 @@ When a skill or command needs specific data, use this table to know which file t
 
 ## Project Intelligence Schema
 
-See `references/config-schema.md` for the full schema, organized by file. Quick reference:
+See `references/json-schema-reference.md` for the full schema with producer/consumer mapping. Also see `references/data-flow-map.md` for pipeline architecture and `references/cross-reference-patterns.md` for reusable cross-referencing patterns. Quick reference:
 
 ```
 project-config.json

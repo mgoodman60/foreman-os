@@ -400,6 +400,62 @@ Each major trade follows a standardized three-phase inspection protocol: Pre-Ins
 ---
 
 
+## Project Intelligence Integration
+
+When project intelligence is loaded, auto-populate QMS checklists, hold points, and inspection requirements from extracted project data instead of requiring manual lookup.
+
+### Spec-Based Checklist Generation
+Generate trade-specific checklists from specifications:
+- Read `specs-quality.json` → `spec_sections[]` → for each CSI division, pull testing requirements, acceptance criteria, and QC checkpoints
+- Auto-populate Phase 1/2/3 checklist items with spec-specific tolerances and methods
+- Example: Division 03 spec requires 4000 PSI 28-day strength → auto-set concrete Phase 3 acceptance criteria to "28-day cylinder strength >= 4000 PSI"
+
+### Hold Point Awareness
+Auto-populate pre-installation verification requirements:
+- Read `specs-quality.json` → `hold_points[]` → identify mandatory hold points for the current work phase
+- Flag upcoming hold points that require Building Official or third-party inspection sign-off before proceeding
+- Cross-reference `inspection-log.json` → verify hold point inspection status (scheduled/pass/fail)
+- Example: HP-007 (anchor bolt survey) must clear before PEMB erection → flag if not yet passed
+
+### Location Mapping
+Resolve inspection locations to structured references:
+- Read `plans-spatial.json` → `room_schedule[]` + `building_areas[]` → resolve inspection area to grid references and floor levels
+- Auto-populate the inspection location field with structured grid/area/room data
+- Example: "Kitchen area" → Grid C-4, Level 1, Building Area: West Wing, Room 103
+
+### Subcontractor QC Contact
+Identify the responsible QC representative for each trade:
+- Read `directory.json` → `subcontractors[]` → for the trade being inspected, pull the sub's QC contact and foreman information
+- Auto-populate the "Responsible Party" field on inspection checklists
+- Example: CFS framing inspection → EKD QC rep: contact info from directory.json
+
+### Historical Quality Data
+Pull trending data to inform current inspections:
+- Read `quality-data.json` → `quality_metrics` → pull FPIR (First-Pass Inspection Rate) trends per trade
+- Read `quality-data.json` → `corrective_actions[]` → surface recurring corrective actions for the current trade
+- Flag trades with FPIR below 85% for increased inspection frequency
+- Example: W Principles FPIR trending at 82% → recommend additional pre-pour inspection checkpoints
+
+### Drawing Reference
+Link QC inspections to relevant construction documents:
+- Read `plans-spatial.json` → `sheet_cross_references[]` → match the inspection location and trade to relevant detail drawings
+- Auto-populate "Reference Drawing" field on inspection checklists
+- Example: Foundation rebar inspection at Grid X-2 → Reference Sheet S-1.1 (Foundation Plan), Detail 3/S-1.2
+
+### Material Test Result Verification
+
+```
+Read quality-data.json → test_results[]
+```
+
+- Before approving any inspection involving concrete, steel, soil, or welding, check `quality-data.json → test_results[]` for the relevant material/trade
+- **Concrete**: Verify 7-day and 28-day compressive strength results meet spec requirements from `specs-quality.json → acceptance_criteria[]`
+- **Steel**: Verify mill test reports (MTRs) on file with correct grade and heat lot traceability
+- **Soil**: Verify compaction test results meet specified percent compaction before proceeding with foundation work
+- **Welding**: Verify NDT inspection results for structural connections before cover-up
+- Cross-reference test specimen IDs against `procurement-log.json → delivery_tickets[]` to confirm material traceability
+- Flag any test failures or pending results that could affect inspection approval
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

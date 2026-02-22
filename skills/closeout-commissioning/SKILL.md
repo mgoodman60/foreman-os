@@ -261,6 +261,55 @@ Each O&M manual must include: equipment specifications, operation procedures, ma
 5. Load testing: progressively apply electrical loads; verify voltage drop and power quality
 
 
+## Project Intelligence Integration
+
+On every `/closeout` invocation, automatically read the following project data to enrich closeout tracking:
+
+### Warranty Tracking from Extracted Data
+
+```
+Read quality-data.json → warranties[]
+```
+
+- Pull all extracted warranty records and build the **Warranty Closeout Checklist** automatically
+- For each warranty, check `registration.status` — flag any with status `pending` where `registration.deadline_date` is within 30 days
+- Cross-reference `warranties[].installer` against `directory.json → subcontractors[]` for contact info on missing warranty documents
+- Cross-reference `warranties[].spec_section` against `specs-quality.json → spec_sections[]` to verify warranty duration meets specification requirements
+- Track warranty start date triggers — if `start_trigger` = "substantial_completion", auto-populate `start_date` when `project-config.json → substantial_completion_date` is set
+
+### Commissioning Test Results
+
+```
+Read quality-data.json → system_tests[]
+```
+
+- Pull all system test results (TAB, fire protection, electrical, plumbing, envelope) to auto-populate commissioning checklist status
+- For each system in the closeout checklist, check if corresponding test records exist with `result` = "pass"
+- Flag systems with no test records or with `result` = "fail" / "conditional_pass" that still need re-test
+- Cross-reference `system_tests[].witnessed_by` to verify third-party witness requirements are met
+
+### O&M Manual Completeness
+
+```
+Read quality-data.json → equipment_data[]
+```
+
+- For each equipment item, verify O&M manual has been extracted and structured data exists
+- Check for required sections: operation procedures, PM schedules, parts lists, emergency procedures
+- Cross-reference equipment tags against `procurement-log.json` to verify all procured equipment has corresponding O&M data
+- Flag equipment with missing or incomplete O&M documentation
+
+### As-Built Drawing Status
+
+```
+Read plans-spatial.json → as_built_overlay
+```
+
+- Pull as-built completion status by discipline from `as_built_overlay.as_built_status[]`
+- Calculate overall as-built completion percentage
+- Flag disciplines below 100% completion — list specific sheets still needing markup
+- Cross-reference deviations against `change-order-log.json` to verify all field changes are documented
+
 ---
 
 > **Extended reference**: Detailed examples, templates, scoring rubrics, and best practices are in `references/skill-detail.md`.

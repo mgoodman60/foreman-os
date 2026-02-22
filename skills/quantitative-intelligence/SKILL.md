@@ -37,6 +37,34 @@ When the same measurement exists from multiple sources, use the highest-priority
 
 For plan-based quantity extraction, the `construction-takeoff` Cowork skill provides an alternative or complementary workflow. When a takeoff is performed using that skill, its calibrated measurements feed directly into the Data Source Priority system at Priority Level 3. If the construction-takeoff skill detects quantities that differ from DXF or visual analysis results by >10%, it triggers the discrepancy flag for superintendent review. This integration enables both tools to work together: quantitative-intelligence for cross-sheet assembly chains and derived calculations, and construction-takeoff for focused material-by-material measurement and cost rollups.
 
+### Construction-Takeoff Integration
+
+The cowork platform's `construction-takeoff` skill provides quantity takeoff data as a **Priority 3** source (after plan extraction and manual override).
+
+**Data flow:**
+```
+construction-takeoff (cowork skill)
+  → takeoff results (area, linear, count, volume by element)
+    → quantitative-intelligence cross-verification
+      → plans-spatial.json quantities (if validated)
+```
+
+**When to use construction-takeoff data:**
+1. **Primary source unavailable**: When plan extraction cannot identify quantities (poor scan quality, hand-drawn plans, missing schedules)
+2. **Cross-verification**: When plan-extracted quantities need independent validation
+3. **Scope additions**: For change order scope that isn't on the original plans
+4. **Owner-furnished takeoffs**: When the owner or CM provides their own takeoff data for comparison
+
+**Integration rules:**
+- Construction-takeoff results are treated as Priority 3 — they do NOT override plan-extracted (Priority 1) or manually entered (Priority 2) quantities without superintendent approval
+- When construction-takeoff quantity differs from plan-extracted by >10%, trigger the Discrepancy Resolution workflow (see Discrepancy Resolution section)
+- Store construction-takeoff source reference in quantity record: `source: "construction-takeoff"`, `takeoff_id: "CT-###"`
+
+**Limitations:**
+- The construction-takeoff skill runs within the cowork platform — it is NOT available in Claude Code standalone mode
+- Takeoff accuracy depends on drawing quality and scale calibration
+- Material-specific waste factors are NOT applied by construction-takeoff — they must be added by quantitative-intelligence using the waste factor hierarchy
+
 ---
 
 ## Cross-Sheet Reference Index (Data Source)
@@ -306,6 +334,46 @@ After cross-verification, assign confidence based on how many sources agree:
 
 ---
 
+## Discrepancy Resolution
+
+When quantity calculations flag discrepancies (>10% variance between sources), the superintendent must resolve them. Without resolution tracking, discrepancies re-appear on every calculation run.
+
+### Resolution Workflow
+
+1. **Flag raised**: Calculator identifies >10% variance between sources (e.g., plan count vs. schedule quantity vs. takeoff)
+2. **Superintendent reviews**: Examines source data, determines which value is correct
+3. **Resolution recorded**: Decision stored in `plans-spatial.json → discrepancy_log[]`
+4. **Downstream cascade**: Resolved quantity triggers re-check in cost-tracking (budget impact), labor-tracking (production rate recalc), and procurement-log (order quantity adjustment)
+
+### Discrepancy Log Entry Structure
+
+```json
+{
+  "discrepancy_id": "DISC-001",
+  "element": "Footing F1",
+  "quantity_type": "concrete_volume",
+  "source_values": {
+    "plan_calculation": "12.5 CY",
+    "schedule_quantity": "10.0 CY",
+    "takeoff_quantity": "11.8 CY"
+  },
+  "variance_percent": 25,
+  "resolved_value": "12.5 CY",
+  "resolution_rationale": "Plan calculation includes haunch per structural detail S-5.2; schedule quantity was from preliminary estimate",
+  "resolved_by": "Superintendent",
+  "resolution_date": "2026-03-15",
+  "downstream_updates": [
+    "cost-data.json: Budget line 03-CONC updated",
+    "procurement-log.json: PO-042 quantity confirmed"
+  ]
+}
+```
+
+### Auto-Skip Resolved Discrepancies
+
+On subsequent calculation runs, check `plans-spatial.json → discrepancy_log[]` before flagging:
+- If `discrepancy_id` matches a previous flag AND `resolved_value` exists → use resolved value, do NOT re-flag
+- If source values have CHANGED since resolution → re-flag with note "Previously resolved — source data changed"
 
 ---
 

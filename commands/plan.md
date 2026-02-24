@@ -13,6 +13,7 @@ Implement the Last Planner System for reliable weekly work planning based on Lea
 ## Skills Referenced
 - `${CLAUDE_PLUGIN_ROOT}/skills/last-planner/SKILL.md` — Full Last Planner System: planning hierarchy, weekly workflow, constraint analysis (6 types), PPC calculation, variance categories (9 types), make-ready process
 - `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` — Project configuration and data context
+- `${CLAUDE_PLUGIN_ROOT}/agents/weekly-planning-coordinator.md` — Agent for orchestrating the weekly planning cycle with constraint analysis and PPC tracking
 
 **Output Skills**: See the `docx` Cowork skill for .docx report generation best practices.
 

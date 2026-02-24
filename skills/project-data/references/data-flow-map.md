@@ -37,6 +37,9 @@ Architectural documentation of the full data extraction and consumption pipeline
           │  labor-tracking.json    quality-data.json                │
           │  safety-log.json        daily-report-data.json           │
           │  daily-report-intake.json  cost-data.json                │
+          │  closeout-data.json     risk-register.json               │
+          │  claims-log.json        environmental-log.json           │
+          │  annotation-log.json                                     │
           └───────────────────────────┬──────────────────────────────┘
                                       │
             ┌──────────┬──────────┬───┴────┬──────────┬──────────┐
@@ -244,6 +247,46 @@ plans-spatial.json → quantities, sheet_cross_references
     │  Output: Morning briefing summary (not stored)
 ```
 
+### Closeout / Risk / Claims / Environmental / Annotation Phase
+
+```
+/closeout  (closeout tracking)
+    │  Reads: quality-data.json (commissioning test results, equipment data)
+    │         drawing-log.json (as-built drawing status)
+    │         punch-list.json (open items by system)
+    │         directory.json (sub contacts for warranty follow-up)
+    │         specs-quality.json (closeout requirements per section)
+    │  Writes: closeout-data.json (systems[], warranties[])
+
+/risk  (risk register management)
+    │  Reads: schedule.json (activity linkage, critical path)
+    │         cost-data.json (contingency status)
+    │         delay-log.json (risk materialization check)
+    │         procurement-log.json (supply chain risks)
+    │         directory.json (sub performance for risk assessment)
+    │  Writes: risk-register.json (risks[])
+
+/claims  (claims documentation)
+    │  Reads: delay-log.json (supporting delay events)
+    │         change-order-log.json (related COs)
+    │         daily-report-data.json (contemporaneous records)
+    │         schedule.json (critical path impact)
+    │  Writes: claims-log.json (claims[])
+
+/environmental  (environmental compliance)
+    │  Reads: inspection-log.json (cross-reference inspections)
+    │         safety-log.json (hazmat incident cross-ref)
+    │         daily-report-data.json (weather for SWPPP triggers)
+    │         specs-quality.json (environmental spec requirements)
+    │  Writes: environmental-log.json (swppp, leed_credits, waste_diversion, hazmat)
+
+/annotate  (document annotations)
+    │  Reads: drawing-log.json (drawing context, revision status)
+    │         rfi-log.json (linked RFIs)
+    │         plans-spatial.json (sheet cross-references)
+    │  Writes: annotation-log.json (annotations[])
+```
+
 ### Log Commands (write to individual log files)
 
 ```
@@ -255,6 +298,11 @@ plans-spatial.json → quantities, sheet_cross_references
 /inspection    → inspection-log.json
 /safety        → safety-log.json
 /labor         → labor-tracking.json
+/closeout      → closeout-data.json
+/risk          → risk-register.json
+/claims        → claims-log.json
+/environmental → environmental-log.json
+/annotate      → annotation-log.json
 ```
 
 ---
@@ -276,6 +324,11 @@ plans-spatial.json → quantities, sheet_cross_references
 | `/weekly-report` | `daily-report-data.json`, `schedule.json`, `change-order-log.json`, `rfi-log.json`, `submittal-log.json`, `safety-log.json`, `inspection-log.json`, `delay-log.json`, `pay-app-log.json` |
 | `/morning-brief` | `schedule.json`, `inspection-log.json`, `rfi-log.json`, `submittal-log.json`, `change-order-log.json`, `meeting-log.json`, `procurement-log.json`, `safety-log.json`, `plans-spatial.json` |
 | `/look-ahead` | `schedule.json`, `directory.json`, `procurement-log.json`, `specs-quality.json`, `rfi-log.json`, `submittal-log.json`, `daily-report-data.json` |
+| `closeout-commissioning` | `closeout-data.json`, `quality-data.json`, `drawing-log.json`, `punch-list.json`, `directory.json`, `specs-quality.json` |
+| `risk-management` | `risk-register.json`, `schedule.json`, `cost-data.json`, `delay-log.json`, `procurement-log.json`, `directory.json`, `quality-data.json` |
+| `delay-tracker` | `delay-log.json`, `schedule.json`, `cost-data.json`, `claims-log.json`, `daily-report-data.json`, `specs-quality.json` |
+| `drawing-control` | `drawing-log.json`, `annotation-log.json`, `rfi-log.json`, `change-order-log.json`, `plans-spatial.json` |
+| `report-qa` | `environmental-log.json`, `claims-log.json`, `risk-register.json`, `closeout-data.json` (in addition to existing sources) |
 
 ---
 
@@ -297,4 +350,9 @@ plans-spatial.json → quantities, sheet_cross_references
 | `/inspection` (result logged) | `inspection-log.json` | Morning brief, daily report |
 | `/safety` (incident logged) | `safety-log.json` | Morning brief, TRIR calc, meeting minutes |
 | `/labor` (hours logged) | `labor-tracking.json` | EVM actual cost, daily report cross-validation |
+| `/closeout` (system updated) | `closeout-data.json` | Dashboard closeout %, weekly report, morning brief |
+| `/risk` (new/updated risk) | `risk-register.json` | Morning brief, weekly report, cost contingency assessment |
+| `/claims` (new/updated claim) | `claims-log.json` | Weekly report, cost tracking, meeting minutes |
+| `/environmental` (entry logged) | `environmental-log.json` | Daily report, weekly report, safety management |
+| `/annotate` (annotation created) | `annotation-log.json` | Drawing control, RFI generation, morning brief |
 | ASI received | `project-config.json` (asi_log) | Assembly chains marked needs_verification |

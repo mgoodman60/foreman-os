@@ -378,6 +378,390 @@ DWG Layers (dwg-extraction) → plans-spatial.json → dwg_storm_sewer[], dwg_wa
 
 ---
 
+## Pattern 8: Risk → Schedule → Cost
+
+**Trigger:** A risk event is identified, discussed, or a risk register review is requested. Also triggered when a schedule activity or cost division shows unexpected variance that could be linked to a known risk.
+
+**Purpose:** Connect risk register entries to the schedule activities they threaten and the cost accounts they may impact, enabling integrated risk-schedule-cost analysis.
+
+### Files to Read
+1. `risk-register.json` → `risks[]` — match risk by ID, category, or description
+2. `schedule.json` → `activities[]` — match by `linked_activity_id` or activity name keyword
+3. `cost-data.json` → `budget_by_division[]`, `contingency` — match by cost code or division
+4. `delay-log.json` → `delays[]` — check if risk has already materialized as a delay
+
+### Fields to Extract
+```
+risk-register.json → risks[match]
+  .risk_id           → Risk identifier (RSK-NNN)
+  .description       → Risk description
+  .category          → schedule/cost/safety/quality/external
+  .probability       → Likelihood (0.0 - 1.0)
+  .impact            → Impact score (1-10)
+  .risk_exposure     → probability × impact
+  .risk_owner        → Who owns the mitigation
+  .mitigation_plan   → Planned response
+  .mitigation_status → not_started/in_progress/complete
+  .contingency_allocated → Reserved contingency for this risk
+  .linked_activity_id → Schedule activity this risk threatens
+
+schedule.json → activities[match by linked_activity_id]
+  .activity_name     → Activity description
+  .early_start       → Planned start
+  .total_float       → Available float (days)
+  .is_critical       → On critical path
+  .percent_complete  → Current progress
+
+cost-data.json → budget_by_division[match by risk.cost_code]
+  .division          → CSI division number
+  .original_amount   → Budget baseline
+  .current_amount    → Current budget (with COs)
+  .committed_costs   → Committed to date
+
+cost-data.json → contingency
+  .original_amount   → Total contingency
+  .spent             → Contingency used
+```
+
+### Chain Logic
+```
+Forward chain (risk threatens schedule and cost):
+  RSK-003 "Steel delivery delay" (probability: 0.7, impact: 8)
+    → Linked activity: "Steel Erection - Level 2" (critical path, float: 0)
+    → Cost impact: Division 05 (Metals) — $450K committed, $380K budget
+    → Contingency allocated: $85,000
+    → Mitigation: Pre-qualify alternate supplier (status: in_progress)
+
+Reverse chain (schedule/cost anomaly traced to risk):
+  Activity "Steel Erection - Level 2" showing 5-day slip
+    → Check risk-register for linked risks → RSK-003 (active)
+    → Risk materialized → check delay-log for matching entry
+    → Cost variance in Div 05 → risk contingency draw needed
+```
+
+### Output Format
+```
+RISK-SCHEDULE-COST LINK — RSK-003
+  Risk: Steel delivery delay (exposure: 5.6 — Critical)
+  Schedule Impact: Steel Erection Level 2 (critical path, 0 float)
+    — If triggered: 12-day delay, cascading to 3 successor activities
+  Cost Impact: Division 05 variance potential $85,000
+    — Contingency allocated: $85,000 (18.9% of total contingency)
+  Mitigation: Pre-qualify alternate supplier — IN PROGRESS
+  Owner: Project Manager
+```
+
+### Consuming Skills
+`risk-management`, `cost-tracking`, `earned-value-management`, `/morning-brief`, `/weekly-report`
+
+---
+
+## Pattern 9: Claims → Delay → CO
+
+**Trigger:** A claim is filed, a notice of claim is sent, or a discussion references contractual disputes, time extensions, or differing site conditions. Also triggered when reviewing delay log entries or change orders that may support a claim.
+
+**Purpose:** Link claims documentation to the underlying delay events and change orders that form the factual basis of each claim, ensuring complete evidence chains for dispute resolution.
+
+### Files to Read
+1. `claims-log.json` → `claims[]` — match claim by ID, type, or description
+2. `delay-log.json` → `delays[]` — match by `related_delay_ids` or date range overlap
+3. `change-order-log.json` → `change_orders[]` — match by `related_co_ids` or description
+4. `daily-report-data.json` → `entries[]` — contemporaneous records supporting the claim
+5. `schedule.json` → `activities[]` — critical path impact analysis
+
+### Fields to Extract
+```
+claims-log.json → claims[match]
+  .claim_id              → Claim identifier (CLM-NNN)
+  .description           → Claim description
+  .claim_type            → time_extension/cost/acceleration/differing_conditions
+  .status                → draft/notice_sent/filed/under_review/negotiation/resolved/denied
+  .claimed_amount        → Dollar amount claimed
+  .claimed_days          → Time extension days claimed
+  .notice_required_by    → Contractual notice deadline
+  .notice_sent_date      → Date notice was sent
+  .related_delay_ids     → Linked delay log entries
+  .related_co_ids        → Linked change orders
+  .evidence_documents[]  → Supporting documentation references
+
+delay-log.json → delays[match by related_delay_ids]
+  .delay_id        → Delay identifier
+  .cause           → Weather/owner/design/unforeseen/sub
+  .delay_days      → Duration of delay
+  .date_identified → When delay was identified
+  .impact          → critical_path/near_critical/non_critical
+
+change-order-log.json → change_orders[match by related_co_ids]
+  .co_number             → CO identifier
+  .description           → Change description
+  .amount                → CO amount
+  .status                → draft/submitted/approved/rejected
+  .schedule_impact_days  → Time impact
+```
+
+### Chain Logic
+```
+Forward chain (claim built from delays and COs):
+  CLM-002 "Differing site conditions — unexpected rock"
+    → Delay events: DEL-008 (14 days, critical path), DEL-009 (3 days, concurrent)
+    → Change orders: CO-012 ($350K, pending), CO-013 ($42K, approved)
+    → Daily reports: Feb 1-14 entries documenting rock removal
+    → Schedule impact: 14 days on critical path, extending completion
+
+Reverse chain (delay/CO triggers claim evaluation):
+  DEL-008 "Unforeseen rock at foundation" (owner-caused, 14 days)
+    → Check claims-log: CLM-002 references this delay
+    → CO-012 submitted for cost recovery
+    → Evidence: daily reports, geotech report, contract Section 4.3
+```
+
+### Output Format
+```
+CLAIMS CHAIN — CLM-002
+  Claim: Differing site conditions — unexpected rock ($350,000 + 14 days)
+  Status: Filed — under review
+  Delay Basis:
+    DEL-008: 14 days (critical path) — unforeseen subsurface conditions
+    DEL-009: 3 days (concurrent) — additional dewatering
+  CO Linkage:
+    CO-012: $350,000 (pending) — rock removal and foundation redesign
+    CO-013: $42,000 (approved) — dewatering equipment
+  Evidence: 14 daily reports, geotech boring logs, contract Section 4.3.1
+  Notice: Sent 2026-01-12 (within 7-day requirement)
+```
+
+### Consuming Skills
+`change-order-tracker`, `delay-tracker`, `meeting-minutes`, `/weekly-report`
+
+---
+
+## Pattern 10: Environmental → Inspection → Safety
+
+**Trigger:** An environmental compliance event is referenced (SWPPP inspection, LEED credit tracking, waste diversion report, hazmat incident), or when environmental factors intersect with inspection scheduling or safety management.
+
+**Purpose:** Connect environmental compliance records to related inspection events and safety incidents, ensuring that environmental obligations are tracked alongside the inspection and safety programs.
+
+### Files to Read
+1. `environmental-log.json` → `swppp`, `leed_credits[]`, `waste_diversion`, `hazmat` — environmental compliance data
+2. `inspection-log.json` → `inspections[]` — match environmental inspections
+3. `safety-log.json` → `incidents[]` — match environmental safety incidents
+4. `specs-quality.json` → `spec_sections[]` — environmental spec requirements
+5. `daily-report-data.json` → `entries[]` — weather conditions for SWPPP triggers
+
+### Fields to Extract
+```
+environmental-log.json → swppp
+  .inspections[]        → SWPPP inspection records
+  .permit_expiration    → Permit expiration date
+  .required_frequency   → Inspection frequency requirement
+
+environmental-log.json → hazmat
+  .incidents[]          → Hazmat incidents
+    .type               → spill/release/exposure/storage_violation
+    .severity           → minor/moderate/major
+    .date               → Incident date
+    .location           → Location on site
+
+inspection-log.json → inspections[match by type == "environmental"]
+  .inspection_type      → SWPPP/erosion_control/dust_control/noise
+  .result               → pass/fail/conditional
+  .corrective_actions[] → Required follow-ups
+  .date                 → Inspection date
+
+safety-log.json → incidents[match by type == "environmental"]
+  .description          → Incident description
+  .severity             → Severity level
+  .sub_name             → Responsible sub
+  .corrective_action    → Required response
+```
+
+### Chain Logic
+```
+Forward chain (environmental event triggers inspection and safety):
+  SWPPP inspection finding: "Silt fence damaged at south perimeter"
+    → Corrective action created in inspection-log
+    → If hazmat release risk: safety-log entry created
+    → Daily report weather check: rain event within 24 hours?
+    → Spec check: erosion control requirements per Section 31 25 00
+
+Reverse chain (safety incident traces to environmental compliance):
+  Safety incident: "Fuel spill at equipment staging area"
+    → Environmental-log: hazmat incident recorded
+    → SWPPP corrective action: spill containment verification
+    → Inspection scheduled: post-incident environmental inspection
+```
+
+### Output Format
+```
+ENVIRONMENTAL-INSPECTION-SAFETY LINK
+  Environmental Event: SWPPP finding — damaged silt fence (south perimeter)
+  Inspection: SWPPP-024 (2026-02-17) — pass with findings
+  Corrective Action: Repair silt fence — due 2026-02-28
+  Safety Implication: Erosion risk to adjacent property
+  Spec Reference: Section 31 25 00 (Erosion and Sedimentation Controls)
+  Weather Context: Rain forecast 2026-02-25 — repair urgency elevated
+```
+
+### Consuming Skills
+`safety-management`, `inspection-tracker`, `report-qa`, `/daily-report`, `/weekly-report`
+
+---
+
+## Pattern 11: Closeout → Quality → Drawing
+
+**Trigger:** A closeout activity is referenced (commissioning, warranty, O&M manuals, training, substantial completion checklist), or when quality records and as-built drawings need to be verified against closeout requirements.
+
+**Purpose:** Link closeout tracking items to the quality records (test results, commissioning reports) and drawing records (as-built status) that prove system completion and compliance.
+
+### Files to Read
+1. `closeout-data.json` → `systems[]`, `warranties[]` — closeout tracking by system
+2. `quality-data.json` → `system_tests[]`, `test_results[]`, `equipment_data[]` — commissioning and test data
+3. `drawing-log.json` → `drawings[]` — as-built drawing status
+4. `punch-list.json` → `items[]` — remaining punch items by system
+5. `specs-quality.json` → `spec_sections[]` — closeout requirements per spec section
+
+### Fields to Extract
+```
+closeout-data.json → systems[match]
+  .system_name           → System identifier (HVAC, Plumbing, Electrical, etc.)
+  .commissioning_status  → not_started/in_progress/complete
+  .oam_manual_status     → not_submitted/submitted/approved
+  .warranty_status       → not_received/received/filed
+  .training_status       → not_scheduled/scheduled/complete
+  .completion_pct        → Overall closeout completion
+
+quality-data.json → system_tests[match by system]
+  .test_type             → Commissioning test type
+  .result                → pass/fail/conditional
+  .date                  → Test date
+  .deficiencies[]        → Outstanding deficiencies
+
+quality-data.json → equipment_data[match by system]
+  .equipment_tag         → Equipment identifier
+  .oam_manual_received   → Boolean
+  .warranty_document     → Reference to warranty document
+
+drawing-log.json → drawings[match by discipline/system]
+  .sheet_number          → Drawing sheet number
+  .as_built_status       → not_started/in_progress/submitted/approved
+  .current_revision      → Latest revision
+  .discipline            → Drawing discipline
+```
+
+### Chain Logic
+```
+Forward chain (closeout item needs quality and drawing verification):
+  System "HVAC" closeout (completion: 85%)
+    → Commissioning tests: 12 of 14 complete (2 pending)
+    → Punch items: 3 open HVAC items
+    → As-built drawings: M1.1-M3.2 (8 sheets) — 6 submitted, 2 in progress
+    → O&M manuals: Submitted, under review
+    → Warranties: AHU-1 through AHU-4 received; VAV boxes pending
+
+Reverse chain (quality issue blocks closeout):
+  System test failure: "AHU-3 airflow balancing — 15% below design"
+    → Closeout blocked: commissioning_status remains "in_progress"
+    → Punch item created: PUNCH-089 (HVAC balancing deficiency)
+    → As-built impact: M2.3 diffuser schedule may need revision
+```
+
+### Output Format
+```
+CLOSEOUT STATUS — HVAC System
+  Completion: 85%
+  Commissioning: 12/14 tests complete (2 pending: AHU-3 balancing, VAV zone 4)
+  Quality Records:
+    Test results: 12 pass, 0 fail, 2 pending
+    Deficiencies: 1 open (AHU-3 airflow — 15% below design)
+  Punch Items: 3 open (2 minor, 1 major)
+  As-Built Drawings: 6/8 sheets submitted (M2.3, M3.1 in progress)
+  O&M Manuals: Submitted — under review
+  Warranties: 4/6 received (VAV boxes, exhaust fans pending)
+  Training: Scheduled 2026-03-15
+```
+
+### Consuming Skills
+`closeout-commissioning`, `quality-management`, `drawing-control`, `punch-list`, `/weekly-report`
+
+---
+
+## Pattern 12: Annotation → Drawing → RFI
+
+**Trigger:** A document annotation or markup is created, reviewed, or discussed. Also triggered when a drawing revision or RFI response references annotations or markups.
+
+**Purpose:** Link document annotations and markups to the drawing sheets they reference and any RFIs generated from annotation review, creating a complete trail from field observation to design clarification.
+
+### Files to Read
+1. `annotation-log.json` → `annotations[]` — match annotation by ID, document, or author
+2. `drawing-log.json` → `drawings[]` — match by `document_id` (sheet number)
+3. `rfi-log.json` → `rfis[]` — match by linked annotation or drawing reference
+4. `plans-spatial.json` → `sheet_cross_references` — drawing context
+
+### Fields to Extract
+```
+annotation-log.json → annotations[match]
+  .annotation_id     → Annotation identifier (ANN-NNN)
+  .document_id       → Sheet number or document reference
+  .document_type     → plans/specs/submittals/rfis
+  .annotation_type   → comment/markup/revision_cloud/dimension_override
+  .description       → Annotation content
+  .author            → Who created it
+  .assigned_to       → Who needs to respond
+  .date_created      → When created
+  .status            → open/in_review/pending_response/resolved/closed
+  .priority          → low/medium/high/critical
+  .linked_rfi_id     → RFI generated from this annotation
+
+drawing-log.json → drawings[match by document_id]
+  .sheet_number      → Sheet identifier
+  .title             → Drawing title
+  .discipline        → Architectural/Structural/MEP
+  .current_revision  → Latest revision
+  .as_built_status   → As-built markup status
+
+rfi-log.json → rfis[match by linked_annotation or drawing reference]
+  .rfi_number        → RFI identifier
+  .subject           → RFI topic
+  .status            → Current status
+  .response_text     → Architect's response
+  .schedule_impact   → Impact assessment
+```
+
+### Chain Logic
+```
+Forward chain (annotation generates RFI):
+  ANN-045 markup on S2.1: "Column size at D-4 conflicts with architectural"
+    → Drawing: S2.1 (Foundation Plan, Rev 3, Structural)
+    → Status: open, assigned to Structural Engineer
+    → RFI generated: RFI-028 "Verify column size at Grid D-4"
+    → RFI response pending → annotation remains open
+
+Reverse chain (RFI response resolves annotation):
+  RFI-028 resolved: "Column to remain per structural — arch plan revised"
+    → ANN-045 status updated to "resolved"
+    → Drawing S2.1 revision triggered (Rev 4)
+    → Architectural plan A2.1 also revised
+    → Distribution: annotation author notified of resolution
+```
+
+### Output Format
+```
+ANNOTATION-DRAWING-RFI CHAIN — ANN-045
+  Annotation: "Column size at D-4 conflicts with architectural" (markup)
+  Document: S2.1 — Foundation Plan (Structural, Rev 3)
+  Author: J. Martinez (Superintendent)
+  Assigned To: Structural Engineer
+  Status: Open — pending response (12 days)
+  RFI Generated: RFI-028 "Verify column size at Grid D-4" (issued 2026-02-12)
+  RFI Status: Under review by architect
+  Impact: Potential revision to S2.1 and A2.1 if column size changes
+```
+
+### Consuming Skills
+`drawing-control`, `rfi-preparer`, `document-intelligence`, `/morning-brief`
+
+---
+
 ## Pattern Usage Guidelines
 
 1. **Always check if project intelligence is loaded** before attempting cross-references. If `plans-spatial.json` or `specs-quality.json` is empty, skip enrichment and note the gap.

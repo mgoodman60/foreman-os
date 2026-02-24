@@ -34,6 +34,9 @@ Initialize a new project. Collects project basics and accepts document uploads f
 #### `/process-docs [filename, type, or "scan"]`
 Process specific documents to extract intelligence. Point it at a file, a document type, or drag a file into the chat. Classifies automatically, extracts intelligence, and merges with existing project data. Use `/process-docs scan` to see what's new or changed in your project folders before processing.
 
+#### `/process-dwg [filename.dwg]`
+Extract intelligence from AutoCAD DWG files (including Civil 3D). Compiles libredwg from source, converts DWG to DXF, and parses all entity types — survey points, utility structures, contours, property boundaries, construction keynotes, grading data — into structured project data in plans-spatial.json.
+
 ### Daily Workflow
 
 #### `/morning-brief`
@@ -199,7 +202,7 @@ Foreman_OS generates a `CLAUDE.md` file in your project directory that serves as
 
 ## Skills
 
-The plugin includes forty-one specialized skills:
+The plugin includes forty-two specialized skills:
 
 ### Document & Data Skills
 - **document-intelligence** — Three-pass document classification and extraction pipeline with exhaustive content capture, document register, transmittal tracking, RCP extraction, specification conflict detection, quantity validation workflows, and schedule-to-field automation
@@ -262,6 +265,9 @@ The plugin includes forty-one specialized skills:
 - **project-visual-context** — Visual context gathering for AI renderings including site context, design intent, and material selections
 - **image-generation-mcp** — MCP server implementation for AI image generation using Flux 2, Google Gemini, and SVG tools
 
+### CAD & DWG Skills
+- **dwg-extraction** — AutoCAD DWG file extraction pipeline: compiles libredwg from source, converts DWG to DXF, and parses all entity types (survey points, utility structures, contours, property boundaries, construction keynotes, grading data) into structured project intelligence in plans-spatial.json
+
 ## Agents
 
 The plugin includes ten autonomous agents that monitor, analyze, and advise across the project intelligence data store. Agents are auto-discovered from the `agents/` directory.
@@ -270,10 +276,10 @@ The plugin includes ten autonomous agents that monitor, analyze, and advise acro
 - **superintendent-assistant** — Top-level assistant that routes requests to the appropriate specialized agent, coordinates multi-agent workflows, and handles general project questions
 
 ### Data & Monitoring
-- **data-integrity-watchdog** — Validates consistency across all 23 project intelligence JSON files — detects orphans, cross-file conflicts, schema gaps, staleness, and broken reference chains
+- **data-integrity-watchdog** — Validates consistency across all 28 project intelligence JSON files — detects orphans, cross-file conflicts, schema gaps, staleness, and broken reference chains
 - **project-health-monitor** — Evaluates 8 project KPIs and 5 anomaly detection rules to generate health alerts and trend analysis
-- **dashboard-intelligence-analyst** — Generates project dashboard summaries, executive briefings, and narrative health reports by querying across all 23 JSON files
-- **project-data-navigator** — Translates natural language questions from superintendents into structured data queries across the 23-file project intelligence store
+- **dashboard-intelligence-analyst** — Generates project dashboard summaries, executive briefings, and narrative health reports by querying across all 28 JSON files
+- **project-data-navigator** — Translates natural language questions from superintendents into structured data queries across the 28-file project intelligence store
 - **deadline-sentinel** — Monitors all project deadlines across schedule milestones, submittal due dates, RFI response windows, procurement lead times, inspection prerequisites, and contract notice periods
 
 ### Field & Workflow
@@ -308,6 +314,9 @@ The plugin creates these files in your working directory:
 - `pay-app-log.json` — Pay application history with schedule of values and retainage
 - `cost-data.json` — Budget structure, cost tracking, variance analysis, and cash flow
 - `labor-tracking.json` — Worker/crew time tracking, productivity metrics, and certified payroll
+
+**Quality:**
+- `quality-data.json` — First-pass inspection results, material test records, equipment data, warranty tracking, and system test results
 
 **Safety, Risk & Closeout:**
 - `closeout-data.json` — Closeout tracking, commissioning status, and warranty management

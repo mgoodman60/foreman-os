@@ -9,7 +9,7 @@ Process new or updated project documents. Extracts intelligence and merges it in
 **CRITICAL PROCESSING RULE — ONE DOCUMENT AT A TIME:**
 This command processes documents **one at a time** by default. After processing each document, Claude MUST stop, report results to the user, and **use AskUserQuestion** to ask the user what to process next. Claude must NEVER chain multiple documents together in a single processing pass — this causes context overload and extraction loops.
 
-Read the document-intelligence skill at `${CLAUDE_PLUGIN_ROOT}/skills/document-intelligence/SKILL.md` and the project-data skill at `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` before proceeding. Also read `${CLAUDE_PLUGIN_ROOT}/skills/document-intelligence/references/extraction-rules.md` for type-specific extraction rules. If available, also read the `construction-takeoff` Cowork skill for extracting material quantities from plan sheets during document processing.
+Read the document-intelligence skill at `${CLAUDE_PLUGIN_ROOT}/skills/document-intelligence/SKILL.md` and the project-data skill at `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` before proceeding. Also read `${CLAUDE_PLUGIN_ROOT}/skills/document-intelligence/references/extraction-rules.md` for type-specific extraction rules. After extraction is complete, read the doc-orchestrator agent at `${CLAUDE_PLUGIN_ROOT}/agents/doc-orchestrator.md` to validate extraction output and ensure data quality. If available, also read the `construction-takeoff` Cowork skill for extracting material quantities from plan sheets during document processing.
 
 ## Step 1: Load Existing Project Data
 

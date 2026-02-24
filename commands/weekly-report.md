@@ -11,6 +11,7 @@ Generate comprehensive weekly owner/project manager reports aggregating daily fi
 - `${CLAUDE_PLUGIN_ROOT}/skills/weekly-report-format/SKILL.md` - Report format and structure
 - `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` - Project context and data
 - `${CLAUDE_PLUGIN_ROOT}/skills/report-qa/SKILL.md` - Weekly report QA checks (W1-W6)
+- `${CLAUDE_PLUGIN_ROOT}/agents/report-quality-auditor.md` - Automated quality review after generation
 - If available, the `docx` Cowork skill for professional Word document formatting best practices
 
 **Output Skills**: See the `docx` Cowork skill for .docx generation best practices. See the `pdf` Cowork skill if PDF export is requested.

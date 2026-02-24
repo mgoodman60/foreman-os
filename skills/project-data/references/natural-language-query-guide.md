@@ -1,6 +1,6 @@
 ---
 name: natural-language-query-guide
-description: Maps common superintendent questions and natural language patterns to structured data queries across the 23-file project intelligence store. Used by the project-data-navigator agent to interpret field questions and route them to the correct files and fields.
+description: Maps common superintendent questions and natural language patterns to structured data queries across the 28-file project intelligence store. Used by the project-data-navigator agent to interpret field questions and route them to the correct files and fields.
 version: 1.0.0
 ---
 
@@ -8,7 +8,7 @@ version: 1.0.0
 
 This document maps how construction superintendents ask questions in plain English to the structured data queries needed to answer them. The **project-data-navigator** agent uses this guide to detect intent, extract entities, route queries to the correct JSON files and fields, and format responses for fast field consumption.
 
-All query pattern IDs (QP-*) reference `data-query-patterns.md`. All threshold references use `alert-thresholds.md`. All cross-file joins use the Join Key Reference Table in `data-query-patterns.md` Section 6.
+All query pattern IDs (QP-*) reference `data-query-patterns.md`. All threshold references use `alert-thresholds.md`. All cross-file joins use the Join Key Reference Table in `data-query-patterns.md` Section 11.
 
 ---
 
@@ -337,7 +337,184 @@ Each category maps a class of superintendent questions to the files, fields, and
 
 ---
 
-### 1.10 Daily / Weekly Reports
+### 1.10 Closeout / Commissioning
+
+**Common question patterns:**
+- "What's our closeout status?"
+- "Which systems are commissioned?"
+- "Any warranties expiring soon?"
+- "Where are we on O&M manuals?"
+- "Is the HVAC system signed off?"
+- "What's left for substantial completion?"
+- "When does the roofing warranty expire?"
+- "Have we received all the training certificates?"
+- "What punch items are blocking closeout?"
+- "Show me closeout progress by system"
+
+**Primary files:**
+- `closeout-data.json` — system completion status, warranties, commissioning, O&M, training
+- `quality-data.json` — commissioning test results, system tests
+- `drawing-log.json` — as-built drawing status
+- `punch-list.json` — open items by system
+- `directory.json` — sub contacts for warranty follow-up
+
+**Key fields:**
+- `closeout-data.json` → `systems[].system_name`, `.commissioning_status`, `.oam_manual_status`, `.warranty_status`, `.training_status`, `.completion_pct`
+- `closeout-data.json` → `warranties[].item`, `.sub_name`, `.expiration_date`, `.warranty_type`
+- `quality-data.json` → `system_tests[].system`, `.test_type`, `.result`
+- `drawing-log.json` → `drawings[].as_built_status`, `.discipline`
+- `punch-list.json` → `items[].system`, `.status`
+
+**Query patterns:**
+- Closeout completion by system → QP-CLO-001
+- Warranty expiration timeline → QP-CLO-002
+
+**Cross-reference pattern:** Pattern 11 (Closeout -> Quality -> Drawing) from `cross-reference-patterns.md`
+
+**Alert thresholds:** Closeout completion tiers from `alert-thresholds.md` Section 1.9; warranty expiration sub-thresholds
+
+---
+
+### 1.11 Risk Management
+
+**Common question patterns:**
+- "What are our top risks?"
+- "What's the risk exposure?"
+- "What are our biggest risks right now?"
+- "Any new risks this week?"
+- "How's the risk contingency looking?"
+- "Is that risk still active?"
+- "What's the mitigation status for [risk]?"
+- "Any risks on the critical path?"
+- "Show me the risk register"
+- "What risks are tied to the schedule?"
+
+**Primary files:**
+- `risk-register.json` — risk entries, probability, impact, mitigation plans, contingency
+- `schedule.json` — activity linkage for schedule risks
+- `cost-data.json` — contingency status for cost risks
+- `delay-log.json` — check if risks have materialized as delays
+
+**Key fields:**
+- `risk-register.json` → `risks[].risk_id`, `.description`, `.category`, `.probability`, `.impact`, `.status`, `.risk_owner`, `.mitigation_plan`, `.mitigation_status`, `.contingency_allocated`, `.contingency_spent`, `.linked_activity_id`
+- `schedule.json` → `activities[].activity_id`, `.activity_name`, `.is_critical`, `.total_float`
+- `cost-data.json` → `contingency.original_amount`, `.committed`, `.spent`
+
+**Query patterns:**
+- Active risks by severity → QP-RSK-001
+- Mitigation status and contingency burn → QP-RSK-002
+
+**Cross-reference pattern:** Pattern 8 (Risk -> Schedule -> Cost) from `cross-reference-patterns.md`
+
+**Alert thresholds:** Risk exposure tiers from `alert-thresholds.md` Section 1.10; contingency burn rate sub-thresholds
+
+---
+
+### 1.12 Claims
+
+**Common question patterns:**
+- "What's our claims status?"
+- "Any pending notices?"
+- "How much are we claiming?"
+- "What's the claims documentation look like?"
+- "When's the notice deadline?"
+- "Did we send the notice for [issue]?"
+- "Any claims in negotiation?"
+- "What delays support that claim?"
+- "What's our total claims exposure?"
+- "Are there any claims deadlines coming up?"
+
+**Primary files:**
+- `claims-log.json` — claims records, notice tracking, documentation status
+- `delay-log.json` — supporting delay events
+- `change-order-log.json` — related change orders
+- `daily-report-data.json` — contemporaneous records for evidence
+
+**Key fields:**
+- `claims-log.json` → `claims[].claim_id`, `.description`, `.claim_type`, `.status`, `.claimed_amount`, `.claimed_days`, `.date_filed`, `.notice_required_by`, `.notice_sent_date`, `.documentation_completeness_pct`, `.related_delay_ids`, `.related_co_ids`
+- `delay-log.json` → `delays[].delay_id`, `.cause`, `.delay_days`, `.impact`
+- `change-order-log.json` → `change_orders[].co_number`, `.status`, `.amount`
+
+**Query patterns:**
+- Active claims by status and value → QP-CLM-001
+- Claims notice deadline tracking → QP-CLM-002
+
+**Cross-reference pattern:** Pattern 9 (Claims -> Delay -> CO) from `cross-reference-patterns.md`
+
+**Alert thresholds:** Claims status tiers from `alert-thresholds.md` Section 1.11; notice period sub-thresholds
+
+---
+
+### 1.13 Environmental
+
+**Common question patterns:**
+- "What's our LEED status?"
+- "When was the last SWPPP inspection?"
+- "What's the waste diversion rate?"
+- "Any environmental issues?"
+- "Are we compliant on stormwater?"
+- "When does the SWPPP permit expire?"
+- "Any hazmat incidents?"
+- "What LEED credits are at risk?"
+- "How much waste have we diverted?"
+- "Is there a SWPPP corrective action open?"
+
+**Primary files:**
+- `environmental-log.json` — LEED credits, SWPPP compliance, waste diversion, hazmat incidents
+- `inspection-log.json` — environmental inspection records
+- `safety-log.json` — hazmat incident cross-reference
+- `daily-report-data.json` — weather conditions for SWPPP context
+
+**Key fields:**
+- `environmental-log.json` → `leed_credits[].credit_id`, `.status`, `.points_available`, `.points_achieved`
+- `environmental-log.json` → `swppp.inspections[].date`, `.result`, `.corrective_actions[]`
+- `environmental-log.json` → `swppp.permit_expiration`, `.required_frequency`
+- `environmental-log.json` → `waste_diversion.total_waste_tons`, `.diverted_tons`, `.diversion_rate`
+- `environmental-log.json` → `hazmat.incidents[].date`, `.type`, `.status`
+
+**Query patterns:**
+- Environmental compliance rate by category → QP-ENV-001
+- SWPPP inspection status → QP-ENV-002
+
+**Cross-reference pattern:** Pattern 10 (Environmental -> Inspection -> Safety) from `cross-reference-patterns.md`
+
+**Alert thresholds:** Environmental compliance tiers from `alert-thresholds.md` Section 1.12; SWPPP, waste diversion, and permit sub-thresholds
+
+---
+
+### 1.14 Annotations / Markups
+
+**Common question patterns:**
+- "Any recent markups?"
+- "What's the annotation status?"
+- "Any unresolved annotations?"
+- "Who has open markups?"
+- "What annotations are on sheet S2.1?"
+- "Did the architect respond to that markup?"
+- "How many annotations this week?"
+- "What's outstanding on the structural drawings?"
+- "Any markups that need my attention?"
+- "Show me open comments on the plans"
+
+**Primary files:**
+- `annotation-log.json` — annotations, markups, comments, revision clouds
+- `drawing-log.json` — drawing context, revision status
+- `rfi-log.json` — RFIs generated from annotations
+
+**Key fields:**
+- `annotation-log.json` → `annotations[].annotation_id`, `.document_id`, `.document_type`, `.annotation_type`, `.description`, `.author`, `.assigned_to`, `.date_created`, `.status`, `.priority`, `.linked_rfi_id`
+- `drawing-log.json` → `drawings[].sheet_number`, `.title`, `.discipline`, `.current_revision`
+- `rfi-log.json` → `rfis[].rfi_number`, `.status`, `.response_text`
+
+**Query patterns:**
+- Annotation activity by document type → QP-ANN-001
+- Unresolved annotations aging → QP-ANN-002
+
+**Cross-reference pattern:** Pattern 12 (Annotation -> Drawing -> RFI) from `cross-reference-patterns.md`
+
+---
+
+### 1.15 Daily / Weekly Reports
 
 **Common question patterns:**
 - "What happened yesterday?"
@@ -364,7 +541,7 @@ Each category maps a class of superintendent questions to the files, fields, and
 **Query patterns:**
 - Date-range filter: Time-Series patterns from `data-query-patterns.md` Section 7
 - Sub activity on date: filter `daily-report-data.json` entries by `sub_name` AND `date`
-- Weekly aggregation: Group By pattern from Section 8.5, grouped by date
+- Weekly aggregation: Group By pattern from Section 13.5, grouped by date
 
 ---
 
@@ -385,6 +562,11 @@ The agent must classify each question into one or more categories before routing
 | Location | "floor", "level", "room", "grid", "wing", "building", "area", "zone", "east", "west", "north", "south", "lobby", "basement", "roof" |
 | Delays | "delay", "behind", "late", "slip", "float", "weather day", "impact", "extension", "time" |
 | RFI/Submittal | "RFI", "submittal", "pending review", "architect response", "open items", "approval", "revise and resubmit" |
+| Closeout | "closeout", "commissioning", "warranty", "O&M", "O&M manual", "training", "substantial completion", "turnover", "sign-off", "final inspection", "as-built" |
+| Risk | "risk", "risk register", "exposure", "mitigation", "contingency burn", "probability", "impact", "risk owner", "biggest risk", "top risks" |
+| Claims | "claim", "claims", "notice", "notice period", "time extension", "differing conditions", "acceleration", "dispute", "claims package", "claims documentation" |
+| Environmental | "LEED", "SWPPP", "stormwater", "waste diversion", "hazmat", "environmental", "recycling", "erosion control", "permit", "green building", "sustainability" |
+| Annotations | "annotation", "markup", "comment", "revision cloud", "marked up", "marked-up", "annotated", "unresolved markup", "open comments", "document markup" |
 | Daily/Weekly | "yesterday", "today", "last week", "this week", "daily report", "weekly report", "what happened", "summary" |
 
 ### 2.2 Disambiguation Rules
@@ -487,7 +669,7 @@ The agent must extract structured entities from natural language before building
 | "next week" | start = Monday of next week, end = Friday of next week |
 | "coming week" | same as "next week" |
 
-Align with Time-Series Query Patterns in `data-query-patterns.md` Section 7.
+Align with Time-Series Query Patterns in `data-query-patterns.md` Section 12.
 
 ### 3.4 Spec Sections
 
@@ -611,6 +793,58 @@ Complex questions require joining data from multiple files in sequence. Each rou
 6. **Safety context:** Check `specs-quality.json` safety zones + `safety-log.json` recent incidents at location
 
 **Files touched:** `plans-spatial.json` → `schedule.json` → `labor-tracking.json` → `punch-list.json` → `inspection-log.json` → `specs-quality.json` → `safety-log.json`
+
+### 4.7 "What's our closeout status and what's blocking substantial completion?"
+
+**Steps:**
+1. **Closeout overview:** QP-CLO-001 → get completion percentage per system
+2. **Blocking items:** Filter `closeout-data.json` systems where `completion_pct < 100` → identify missing components (commissioning, O&M, warranty, training)
+3. **Punch items:** Filter `punch-list.json` for items blocking closeout by system
+4. **As-built status:** Check `drawing-log.json` for incomplete as-built drawings
+5. **Warranty gaps:** QP-CLO-002 → identify warranties not yet received
+
+**Files touched:** `closeout-data.json` → `quality-data.json` → `punch-list.json` → `drawing-log.json` → `directory.json`
+
+**Cross-reference pattern:** Pattern 11 (Closeout -> Quality -> Drawing)
+
+### 4.8 "What are our biggest risks and how do they affect the schedule?"
+
+**Steps:**
+1. **Risk ranking:** QP-RSK-001 → get all active risks sorted by exposure
+2. **Schedule linkage:** For each top risk with `linked_activity_id`, look up activity in `schedule.json`
+3. **Critical path check:** Flag risks linked to critical path activities
+4. **Mitigation status:** QP-RSK-002 → check mitigation plan progress for top risks
+5. **Delay correlation:** Check `delay-log.json` for any risks that have already materialized
+
+**Files touched:** `risk-register.json` → `schedule.json` → `delay-log.json` → `cost-data.json`
+
+**Cross-reference pattern:** Pattern 8 (Risk -> Schedule -> Cost)
+
+### 4.9 "What's our claims exposure and are we meeting notice deadlines?"
+
+**Steps:**
+1. **Claims overview:** QP-CLM-001 → get all active claims with amounts and status
+2. **Notice compliance:** QP-CLM-002 → check upcoming and overdue notice deadlines
+3. **Evidence chain:** For each claim, follow `related_delay_ids` to `delay-log.json` and `related_co_ids` to `change-order-log.json`
+4. **Documentation completeness:** Check `documentation_completeness_pct` for each claim
+5. **Total exposure:** Calculate total `claimed_amount` as percentage of contract value from `cost-data.json`
+
+**Files touched:** `claims-log.json` → `delay-log.json` → `change-order-log.json` → `cost-data.json`
+
+**Cross-reference pattern:** Pattern 9 (Claims -> Delay -> CO)
+
+### 4.10 "Are we compliant on environmental requirements?"
+
+**Steps:**
+1. **Environmental overview:** QP-ENV-001 → get compliance rates across all categories
+2. **SWPPP status:** QP-ENV-002 → check inspection frequency compliance and open corrective actions
+3. **LEED tracking:** Filter `leed_credits[]` for at-risk credits
+4. **Waste diversion:** Compare `diversion_rate` against target
+5. **Permit check:** Verify `permit_expiration` is not approaching
+
+**Files touched:** `environmental-log.json` → `inspection-log.json` → `daily-report-data.json`
+
+**Cross-reference pattern:** Pattern 10 (Environmental -> Inspection -> Safety)
 
 ---
 
@@ -736,7 +970,83 @@ DELAY STATUS — [Project or Activity]
   [If open]: Action Needed: [who needs to do what]
 ```
 
-### 5.10 Daily Summary Response
+### 5.10 Closeout Response
+
+```
+CLOSEOUT STATUS — [System or Project]
+  Overall Completion: [X%]
+  Commissioning: [status] ([X/Y tests complete])
+  O&M Manuals: [status]
+  Warranties: [X/Y received]
+  Training: [status]
+  Open Punch Items: [count] ([priority breakdown])
+  As-Built Drawings: [X/Y submitted]
+  [If warranty query]: Expiring Within 90 Days: [count]
+    - [Item]: [Sub] — expires [date] ([X days])
+```
+
+### 5.11 Risk Response
+
+```
+RISK STATUS — [Risk ID or Project]
+  Active Risks: [count] (Critical: [X], High: [Y], Medium: [Z])
+  Top Risk: [description] (exposure: [score])
+  Risk Contingency: $[allocated] allocated, $[spent] spent ($[remaining] remaining)
+  Mitigation Completion: [X%] ([Y overdue])
+  [If specific risk]: RSK-[NNN]: [description]
+    Probability: [X] | Impact: [Y] | Exposure: [score]
+    Owner: [name] | Status: [status]
+    Mitigation: [plan] — [status]
+    Schedule Link: [activity] ([critical path status])
+```
+
+### 5.12 Claims Response
+
+```
+CLAIMS STATUS — [Claim ID or Project]
+  Active Claims: [count] | Total Claimed: $[amount]
+  [If specific claim]: CLM-[NNN]: [description]
+    Type: [type] | Status: [status]
+    Amount: $[amount] | Days: [X]
+    Documentation: [X%] complete
+    Notice: [sent/pending] ([deadline info])
+    Supporting Delays: [delay list]
+    Related COs: [CO list]
+  [If overview]: By Status: [status breakdown]
+  Upcoming Notice Deadlines: [count within 14 days]
+```
+
+### 5.13 Environmental Response
+
+```
+ENVIRONMENTAL STATUS — [Category or Project]
+  LEED: [target level] — [points achieved]/[points available] ([X%])
+    At-Risk Credits: [list]
+  SWPPP: [compliance rate]%
+    Last Inspection: [date] — [result]
+    Next Due: [date] ([X days])
+    Open Corrective Actions: [count]
+    Permit Expires: [date] ([X days])
+  Waste Diversion: [rate]% (target: [target]%)
+  Hazmat: [incident count] incidents ([open count] open)
+```
+
+### 5.14 Annotation Response
+
+```
+ANNOTATION STATUS — [Document or Project]
+  Total Annotations: [count] ([period])
+  Unresolved: [count] (avg age: [X days])
+  [If document-specific]: [Document ID] — [title]
+    Open: [count] | In Review: [count] | Resolved: [count]
+  [If unresolved focus]:
+    By Assigned To: [party breakdown]
+    Oldest: ANN-[NNN] — [description] ([X days], assigned to [party])
+  [If activity focus]: This Week: [count] new annotations
+    Top Authors: [author list with counts]
+```
+
+### 5.15 Daily Summary Response
 
 ```
 DAILY SUMMARY — [Date]

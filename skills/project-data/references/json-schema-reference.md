@@ -557,6 +557,432 @@ DWG processing tracking. Produced by `dwg-extraction`, consumed by `quantitative
 
 ---
 
+## 24. closeout-data.json
+
+Closeout status tracking, commissioning workflow, and retainage management for project completion.
+
+### `closeout_status`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `phase` | string | Current closeout phase: pre_substantial / substantial_punch / final_closeout / complete | `closeout-commissioning` | `/morning-brief`, `/project-dashboard`, `/weekly-report` |
+| `substantial_completion_date` | string | ISO 8601 date of substantial completion | `closeout-commissioning` | `project-config` (warranty start trigger), `punch-list`, `/weekly-report` |
+| `final_completion_date` | string | ISO 8601 date of final completion | `closeout-commissioning` | `/weekly-report`, `cost-tracking` |
+
+### `closeout_status.items[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | CLO-NNN identifier | `closeout-commissioning` | `/morning-brief`, `/project-dashboard` |
+| `category` | string | contract / om_manual / asbuilt / warranty / training / spare_parts / keys / certificate / testing | `closeout-commissioning` | `/project-dashboard` (by-category chart) |
+| `description` | string | Closeout item description | `closeout-commissioning` | — |
+| `responsible_party` | string | Subcontractor or team responsible | `closeout-commissioning` | `punch-list`, `meeting-minutes` |
+| `status` | string | not_started / in_progress / submitted / approved / na | `closeout-commissioning` | `/morning-brief`, `/project-dashboard` |
+| `due_date` | string | ISO 8601 due date | `closeout-commissioning` | `/morning-brief` (deadline alerts) |
+| `date_submitted` | string | ISO 8601 date item was submitted | `closeout-commissioning` | — |
+| `date_approved` | string | ISO 8601 date item was approved | `closeout-commissioning` | — |
+| `notes` | string | Additional notes | `closeout-commissioning` | — |
+| `spec_section` | string | CSI spec section reference | `closeout-commissioning` | `inspection-tracker` |
+
+### `closeout_status.retainage`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `total_held` | number | Total retainage amount held | `closeout-commissioning`, `cost-tracking` | `/project-dashboard`, `/weekly-report` |
+| `released` | number | Retainage amount released | `closeout-commissioning` | `cost-tracking`, `pay-applications` |
+| `remaining` | number | Retainage still held | `closeout-commissioning` | `/project-dashboard` |
+| `conditions_for_release` | array | Conditions that must be met for retainage release | `closeout-commissioning` | `/morning-brief` |
+
+### `commissioning`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `commissioning_agent` | string | CxA name or firm | `closeout-commissioning` | `/weekly-report`, `meeting-minutes` |
+
+### `commissioning.systems[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | CX-NNN identifier | `closeout-commissioning` | `/morning-brief`, `/project-dashboard` |
+| `system` | string | System description (e.g., HVAC — RTU-1) | `closeout-commissioning` | `/project-dashboard` |
+| `phase` | string | pre_functional / functional_testing / integrated_testing / seasonal_testing / complete | `closeout-commissioning` | `/morning-brief`, `/project-dashboard` |
+| `pre_functional_date` | string | ISO 8601 date of pre-functional test | `closeout-commissioning` | `quality-data` cross-ref |
+| `pre_functional_result` | string | pass / fail / conditional | `closeout-commissioning` | `/morning-brief` |
+| `fpt_date` | string | ISO 8601 date of functional performance test | `closeout-commissioning` | `quality-data` cross-ref |
+| `fpt_result` | string | pass / fail / conditional | `closeout-commissioning` | `/morning-brief`, `/project-dashboard` |
+| `deficiencies` | array | List of commissioning deficiencies | `closeout-commissioning` | `punch-list` |
+| `retesting_required` | boolean | Whether retesting is needed | `closeout-commissioning` | `/morning-brief` |
+| `training_complete` | boolean | Whether owner training is complete | `closeout-commissioning` | — |
+| `documentation_complete` | boolean | Whether documentation is complete | `closeout-commissioning` | — |
+| `notes` | string | Additional notes | `closeout-commissioning` | — |
+
+---
+
+## 25. risk-register.json
+
+Project risk register with identification, assessment, mitigation, contingency tracking, and version history.
+
+### Top-level fields
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `project_id` | string | Project identifier | `risk-management` | — |
+| `last_updated` | string | ISO 8601 timestamp of last update | `risk-management` | `/morning-brief` |
+| `next_review_date` | string | ISO 8601 date of next scheduled review | `risk-management` | `/morning-brief` (upcoming review alert) |
+
+### `contingency_budget`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `original_allocation` | number | Starting contingency amount (dollars) | `risk-management` | `cost-tracking`, `earned-value-management` |
+| `current_remaining` | number | Remaining contingency after drawdowns | `risk-management` | `cost-tracking`, `/project-dashboard`, `/weekly-report` |
+| `drawdowns[]` | array | Contingency drawdown records | `risk-management` | `cost-tracking` |
+| `drawdowns[].date` | string | ISO 8601 date of drawdown | `risk-management` | `cost-tracking` |
+| `drawdowns[].amount` | number | Drawdown amount (dollars) | `risk-management` | `cost-tracking` |
+| `drawdowns[].risk_id` | string | R-NNN reference to triggering risk | `risk-management` | — |
+| `drawdowns[].description` | string | Description of contingency use | `risk-management` | — |
+| `drawdowns[].approved_by` | string | Approver name/role | `risk-management` | — |
+
+### `risks[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | R-NNN identifier | `risk-management` | `delay-tracker`, `cost-tracking`, `/morning-brief` |
+| `date_identified` | string | ISO 8601 date risk was first identified | `risk-management` | — |
+| `identified_by` | string | Role or name of person who identified the risk | `risk-management` | — |
+| `identification_method` | string | brainstorming / checklist / site_walkthrough / historical_review / swot / field_observation / sub_report / rfi_trend | `risk-management` | — |
+| `category` | string | site_conditions / weather / labor / supply_chain / regulatory / design / subcontractor / financial / force_majeure / safety | `risk-management` | `/project-dashboard` (by-category chart) |
+| `subcategory` | string | Specific risk type within category | `risk-management` | — |
+| `description` | string | Clear description of the risk event | `risk-management` | `/morning-brief`, `/weekly-report` |
+| `root_cause` | string | Underlying cause or driver | `risk-management` | — |
+| `probability` | integer | 1-5 rating per probability scale | `risk-management` | `/project-dashboard` (heat map) |
+| `impact` | integer | 1-5 rating per impact scale | `risk-management` | `/project-dashboard` (heat map) |
+| `score` | integer | Calculated as probability x impact | `risk-management` | `/morning-brief`, `/project-dashboard` |
+| `priority` | string | low / medium / high / critical (derived from score) | `risk-management` | `/morning-brief`, `/weekly-report` |
+| `owner` | string | Person responsible for monitoring | `risk-management` | `meeting-minutes` |
+| `mitigation_strategy` | string | avoidance / transfer / reduction / acceptance | `risk-management` | — |
+| `mitigation_actions` | array | Specific actions being taken | `risk-management` | `meeting-minutes` |
+| `contingency_plan` | string | What to do if risk materializes | `risk-management` | — |
+| `trigger_conditions` | array | Observable conditions indicating materialization | `risk-management` | `/morning-brief` |
+| `cost_exposure` | number | Estimated cost impact (dollars) | `risk-management` | `cost-tracking`, `earned-value-management` |
+| `schedule_exposure_days` | integer | Estimated schedule impact (calendar days) | `risk-management` | `delay-tracker`, `look-ahead-planner` |
+| `status` | string | identified / active / mitigating / monitoring / materialized / closed | `risk-management` | `/morning-brief`, `/project-dashboard` |
+| `status_history[]` | array | Chronological status changes with date, status, notes | `risk-management` | — |
+| `related_activities` | array | Schedule activities affected if risk materializes | `risk-management` | `delay-tracker`, `look-ahead-planner` |
+| `related_risks` | array | Other risk IDs that are related or interdependent | `risk-management` | — |
+| `linked_rfis` | array | RFI IDs related to this risk | `risk-management` | `project-data` cross-ref |
+| `linked_change_orders` | array | Change order IDs related to this risk | `risk-management` | `project-data` cross-ref |
+| `last_reviewed` | string | ISO 8601 date of most recent review | `risk-management` | — |
+| `review_notes` | string | Notes from most recent review | `risk-management` | — |
+| `probability_trend` | string | increasing / stable / decreasing | `risk-management` | `/project-dashboard` |
+| `resolution_date` | string | ISO 8601 date risk was closed (null if active) | `risk-management` | — |
+| `resolution_notes` | string | How the risk was resolved | `risk-management` | — |
+
+### `closed_risks[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| (same schema as `risks[]`) | — | Resolved/retired risks moved from active register | `risk-management` | Audit trail, `/weekly-report` |
+
+### `version_history[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `timestamp` | string | ISO 8601 timestamp | `risk-management` | Audit trail |
+| `action` | string | risk-add / risk-update / risk-close / risk-review / contingency-drawdown | `risk-management` | Audit trail |
+| `risk_id` | string | R-NNN reference | `risk-management` | — |
+| `summary` | string | Summary of change | `risk-management` | — |
+
+---
+
+## 26. claims-log.json
+
+Construction claims management — claim records, notice tracking, evidence inventory, and timeline events.
+
+### `claims[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | CLAIM-NNN identifier | `claims-documentation` | `/morning-brief`, `/weekly-report`, `meeting-minutes` |
+| `status` | string | active / pending_review / settled / denied / withdrawn / arbitration | `claims-documentation` | `/morning-brief`, `/project-dashboard` |
+| `title` | string | Claim title | `claims-documentation` | `/weekly-report` |
+| `type` | string | delay / cost / delay_and_cost / differing_site_conditions / constructive_change / acceleration | `claims-documentation` | — |
+| `date_initiated` | string | ISO 8601 date claim was initiated | `claims-documentation` | — |
+| `notice_date` | string | ISO 8601 date formal notice was sent | `claims-documentation` | — |
+| `notice_deadline` | string | ISO 8601 deadline for contractual notice | `claims-documentation` | `/morning-brief` (deadline alert) |
+| `notice_compliant` | boolean | Whether notice was timely per contract | `claims-documentation` | — |
+| `contract_provision` | string | Contract section supporting the claim | `claims-documentation` | — |
+| `description` | string | Detailed claim description | `claims-documentation` | `/weekly-report` |
+
+### `claims[].events[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `event_id` | string | EVT-NNN identifier | `claims-documentation` | — |
+| `date` | string | ISO 8601 date of event | `claims-documentation` | — |
+| `description` | string | Event description | `claims-documentation` | — |
+| `type` | string | trigger / impact / resolution | `claims-documentation` | — |
+| `evidence` | array | Evidence references (RFI IDs, DR IDs, photo IDs) | `claims-documentation` | — |
+
+### `claims[].schedule_impact`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `delay_days` | integer | Total delay days | `claims-documentation` | `delay-tracker` cross-ref |
+| `float_consumed` | integer | Float days consumed | `claims-documentation` | — |
+| `critical_path_extension` | integer | Critical path extension days | `claims-documentation` | `delay-tracker` |
+| `acceleration_days` | integer | Days recovered through acceleration | `claims-documentation` | — |
+| `net_schedule_impact` | integer | Net schedule impact after acceleration | `claims-documentation` | `/weekly-report` |
+| `linked_delays` | array | DELAY-NNN references | `claims-documentation` | `delay-tracker` cross-ref |
+| `tia_performed` | boolean | Whether time impact analysis was performed | `claims-documentation` | — |
+| `fragnet_id` | string | Schedule fragnet identifier | `claims-documentation` | — |
+
+### `claims[].damages`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `extended_general_conditions` | number | Extended GC cost (dollars) | `claims-documentation` | `cost-tracking` |
+| `loss_of_productivity` | number | Productivity loss cost (dollars) | `claims-documentation` | `cost-tracking` |
+| `acceleration_costs` | number | Acceleration cost (dollars) | `claims-documentation` | `cost-tracking` |
+| `home_office_overhead` | number | Eichleay HOH cost (dollars) | `claims-documentation` | `cost-tracking` |
+| `subcontractor_impacts` | number | Sub impact passthrough (dollars) | `claims-documentation` | `cost-tracking` |
+| `equipment_costs` | number | Equipment standby/rental cost (dollars) | `claims-documentation` | `cost-tracking` |
+| `material_escalation` | number | Material price escalation (dollars) | `claims-documentation` | `cost-tracking` |
+| `total_claimed` | number | Total claim amount (dollars) | `claims-documentation` | `/project-dashboard`, `/weekly-report` |
+| `calculation_method` | string | actual_cost / measured_mile / industry_study / eichleay | `claims-documentation` | — |
+| `supporting_docs` | array | Invoice/payroll/equipment record references | `claims-documentation` | — |
+
+### `claims[].resolution`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `status` | string | pending / negotiating / settled / denied / arbitration / litigation | `claims-documentation` | `/project-dashboard` |
+| `method` | string | direct_negotiation / mediation / arbitration / litigation | `claims-documentation` | — |
+| `settlement_amount` | number | Final settlement amount (dollars) | `claims-documentation` | `cost-tracking` |
+| `settlement_date` | string | ISO 8601 date of settlement | `claims-documentation` | — |
+| `notes` | string | Resolution notes | `claims-documentation` | — |
+
+### `notice_log[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | NOTICE-NNN identifier | `claims-documentation` | — |
+| `type` | string | delay / change / differing_site / constructive_change / acceleration | `claims-documentation` | — |
+| `claim_id` | string | CLAIM-NNN reference | `claims-documentation` | — |
+| `date_sent` | string | ISO 8601 date notice was sent | `claims-documentation` | `/morning-brief` |
+| `deadline_date` | string | ISO 8601 contractual deadline | `claims-documentation` | `/morning-brief` (deadline alert) |
+| `contract_provision` | string | Contract section requiring notice | `claims-documentation` | — |
+| `sent_via` | array | Delivery methods (certified_mail, email, hand_delivery) | `claims-documentation` | — |
+| `delivery_confirmed` | boolean | Whether delivery was confirmed | `claims-documentation` | — |
+| `response_received` | boolean | Whether response was received | `claims-documentation` | — |
+| `content_summary` | string | Summary of notice content | `claims-documentation` | — |
+
+### `evidence_inventory[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | EVID-NNN identifier | `claims-documentation` | — |
+| `type` | string | daily_report / photo / rfi / correspondence / invoice / schedule / inspection | `claims-documentation` | — |
+| `date` | string | ISO 8601 date of evidence | `claims-documentation` | — |
+| `description` | string | Evidence description | `claims-documentation` | — |
+| `file_path` | string | Path or reference to evidence file | `claims-documentation` | — |
+| `linked_claims` | array | CLAIM-NNN references | `claims-documentation` | — |
+| `quality_rating` | string | tier_1 / tier_2 / tier_3 | `claims-documentation` | — |
+| `verified` | boolean | Whether evidence has been verified | `claims-documentation` | — |
+
+### `summary`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `total_active_claims` | integer | Count of active claims | `claims-documentation` | `/project-dashboard` |
+| `total_claimed_amount` | number | Sum of all active claim amounts | `claims-documentation` | `/project-dashboard`, `cost-tracking` |
+| `total_recovered_amount` | number | Sum of all settled/recovered amounts | `claims-documentation` | `cost-tracking` |
+| `pending_notices` | integer | Count of notices awaiting response | `claims-documentation` | `/morning-brief` |
+| `overdue_notices` | integer | Count of overdue notices | `claims-documentation` | `/morning-brief` |
+| `next_deadline` | string | ISO 8601 date of next notice/claim deadline | `claims-documentation` | `/morning-brief` |
+| `last_updated` | string | ISO 8601 timestamp | `claims-documentation` | — |
+
+---
+
+## 27. environmental-log.json
+
+Environmental compliance tracking — LEED credits, SWPPP inspections, waste management, hazmat, dust/noise monitoring, and incidents.
+
+### Top-level fields
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `project` | string | Project code identifier | `environmental-compliance` | — |
+| `last_updated` | string | ISO 8601 timestamp of last update | `environmental-compliance` | — |
+
+### `leed`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `certification_target` | string | LEED certification level (Certified / Silver / Gold / Platinum) | `environmental-compliance` | `/project-dashboard`, `closeout-commissioning` |
+
+### `leed.credits[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | LEED credit identifier (e.g., SS-C1, MR-P1, EQ-C3) | `environmental-compliance` | `/project-dashboard` |
+| `name` | string | Credit name | `environmental-compliance` | — |
+| `status` | string | not_started / in_progress / documented / submitted / achieved / not_achieved | `environmental-compliance` | `/project-dashboard`, `closeout-commissioning` |
+| `target_points` | integer | Points targeted for this credit | `environmental-compliance` | — |
+| `current_diversion_rate` | number | Current waste diversion percentage (MR credits) | `environmental-compliance` | `/project-dashboard` |
+| `documentation_complete` | boolean | Whether credit documentation is complete | `environmental-compliance` | `closeout-commissioning` |
+| `notes` | string | Credit tracking notes | `environmental-compliance` | — |
+| `last_review` | string | ISO 8601 date of last review | `environmental-compliance` | — |
+
+### `leed.product_tracking[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `product_name` | string | Product name | `environmental-compliance` | — |
+| `manufacturer` | string | Manufacturer name | `environmental-compliance` | — |
+| `voc_content_gL` | number | VOC content in grams per liter | `environmental-compliance` | — |
+| `voc_limit_gL` | number | Applicable VOC limit in grams per liter | `environmental-compliance` | — |
+| `compliant` | boolean | Whether product meets VOC limit | `environmental-compliance` | `/project-dashboard` |
+| `area_installed` | string | Installation location | `environmental-compliance` | — |
+| `date_installed` | string | ISO 8601 date installed | `environmental-compliance` | — |
+| `epd` | boolean | Has Environmental Product Declaration | `environmental-compliance` | `closeout-commissioning` |
+| `hpd` | boolean | Has Health Product Declaration | `environmental-compliance` | `closeout-commissioning` |
+| `data_sheet_filed` | boolean | Whether data sheet is on file | `environmental-compliance` | — |
+
+### `swppp`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `permit_number` | string | CGP permit number | `environmental-compliance` | — |
+| `noi_filed` | string | ISO 8601 date Notice of Intent filed | `environmental-compliance` | — |
+| `permit_effective` | string | ISO 8601 date permit became effective | `environmental-compliance` | — |
+| `not_filed` | string | ISO 8601 date Notice of Termination filed | `environmental-compliance` | `closeout-commissioning` |
+| `status` | string | active / terminated | `environmental-compliance` | `/morning-brief` |
+
+### `swppp.inspections[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | SWPPP-INS-NNN identifier | `environmental-compliance` | `inspection-log` cross-ref |
+| `date` | string | ISO 8601 inspection date | `environmental-compliance` | `/daily-report` |
+| `type` | string | routine_weekly / post_storm / pre_storm / quarterly | `environmental-compliance` | — |
+| `inspector` | string | Inspector name | `environmental-compliance` | — |
+| `findings` | string | Inspection findings summary | `environmental-compliance` | `/daily-report` |
+| `deficiencies` | array | List of deficiency descriptions | `environmental-compliance` | `/morning-brief` |
+| `corrective_actions` | array | Corrective action records with action, responsible, deadline, status | `environmental-compliance` | `/morning-brief` |
+| `rainfall_24hr` | number | 24-hour rainfall in inches | `environmental-compliance` | `/daily-report` |
+| `photos` | array | Photo file references | `environmental-compliance` | — |
+
+### `waste_management`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `plan_in_place` | boolean | Whether waste management plan exists | `environmental-compliance` | — |
+| `diversion_target` | number | Target diversion rate percentage | `environmental-compliance` | `/project-dashboard` |
+| `cumulative_recycled` | number | Total tons recycled to date | `environmental-compliance` | `/project-dashboard`, `/weekly-report` |
+| `cumulative_landfilled` | number | Total tons landfilled to date | `environmental-compliance` | `/project-dashboard` |
+| `cumulative_diversion_rate` | number | Running diversion rate percentage | `environmental-compliance` | `/project-dashboard`, `/weekly-report`, `closeout-commissioning` |
+
+### `waste_management.monthly_tracking[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `month` | string | YYYY-MM month identifier | `environmental-compliance` | — |
+| `streams` | object | Tonnage by waste stream (concrete, wood, metal, drywall, cardboard, other_recycled, landfilled) | `environmental-compliance` | `/project-dashboard` |
+| `total_recycled` | number | Total tons recycled for month | `environmental-compliance` | — |
+| `total_landfilled` | number | Total tons landfilled for month | `environmental-compliance` | — |
+| `diversion_rate` | number | Monthly diversion rate percentage | `environmental-compliance` | — |
+
+### `hazmat`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `events[]` | array | Hazmat events (surveys, discoveries, abatement) with id, date, type, description, status | `environmental-compliance` | `safety-management`, `/morning-brief` |
+| `active_hazards` | array | Currently active environmental hazards | `environmental-compliance` | `safety-management` |
+| `training_records[]` | array | Hazmat training records with topic, date, attendees, trainer | `environmental-compliance` | `safety-management` |
+
+### `dust_noise`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `dust_monitoring[]` | array | PM10/PM2.5 readings with date, location, reading, limit, compliant flag | `environmental-compliance` | `/daily-report`, `safety-management` |
+| `noise_monitoring[]` | array | Noise readings with date, location, dBA reading, limit, compliant flag, mitigation applied | `environmental-compliance` | `/daily-report`, `safety-management` |
+| `noise_variances[]` | array | Noise variance permits with conditions | `environmental-compliance` | — |
+| `complaints[]` | array | Environmental complaints received with date, type, resolution | `environmental-compliance` | `/morning-brief` |
+
+### `incidents[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `id` | string | ENV-INC-NNN identifier | `environmental-compliance` | `safety-management`, `/morning-brief` |
+| `date` | string | ISO 8601 incident date | `environmental-compliance` | `/daily-report` |
+| `type` | string | spill / release / contamination / violation | `environmental-compliance` | `safety-management` |
+| `material` | string | Material involved | `environmental-compliance` | — |
+| `quantity_estimate` | string | Estimated quantity released | `environmental-compliance` | — |
+| `location` | string | Incident location description | `environmental-compliance` | — |
+| `cause` | string | Root cause description | `environmental-compliance` | — |
+| `environmental_media_affected` | array | Affected media (soil, water, air) | `environmental-compliance` | `safety-management` |
+| `response_actions` | array | Response actions taken | `environmental-compliance` | — |
+| `reportable` | boolean | Whether incident met reportable thresholds | `environmental-compliance` | `/morning-brief` |
+| `agencies_notified` | array | Agencies notified (NRC, state, EPA) | `environmental-compliance` | — |
+| `cleanup_verified` | boolean | Whether cleanup was verified | `environmental-compliance` | — |
+| `corrective_actions` | array | Corrective actions to prevent recurrence | `environmental-compliance` | — |
+| `status` | string | open / in_progress / closed | `environmental-compliance` | `/morning-brief` |
+| `photos` | array | Photo file references | `environmental-compliance` | — |
+
+---
+
+## 28. annotation-log.json
+
+Document annotation tracking — annotation records, annotation sets, symbol library, and layer definitions.
+
+### `annotations[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `annotation_id` | string | ANN-NNN identifier | `document-annotation` | `drawing-control`, `rfi-preparer`, `punch-list` |
+| `document_ref` | string | Sheet number or document identifier | `document-annotation` | `drawing-control` |
+| `document_path` | string | File path to source document | `document-annotation` | — |
+| `sheet_number` | string | Drawing sheet number (e.g., A-101, M-201) | `document-annotation` | `drawing-control` |
+| `sheet_title` | string | Drawing sheet title | `document-annotation` | — |
+| `annotation_type` | string | revision_cloud / text_note / comment / label / callout / symbol / dimension / zone_boundary / photo_markup / redline | `document-annotation` | — |
+
+### `annotations[].location`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `page` | integer | PDF page number | `document-annotation` | — |
+| `x` | number | X coordinate in PDF points | `document-annotation` | — |
+| `y` | number | Y coordinate in PDF points | `document-annotation` | — |
+| `width` | number | Annotation width in PDF points | `document-annotation` | — |
+| `height` | number | Annotation height in PDF points | `document-annotation` | — |
+| `grid_ref` | string | Grid reference (e.g., C-4) | `document-annotation` | `punch-list`, `inspection-tracker` |
+| `level` | string | Building level | `document-annotation` | — |
+| `room` | string | Room identifier | `document-annotation` | `punch-list` |
+| `description` | string | Location description | `document-annotation` | — |
+
+### `annotations[].content`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `text` | string | Annotation text content | `document-annotation` | — |
+| `symbols` | array | Symbol references from symbol library | `document-annotation` | — |
+| `revision_number` | string | Revision identifier (e.g., R3) | `document-annotation` | `drawing-control` |
+| `markup_elements[]` | array | Markup elements: type, points/position, value, font_size, arc_radius, from/to | `document-annotation` | — |
+
+### `annotations[]` (continued)
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `discipline` | string | architectural / structural / mechanical / electrical / plumbing / fire_protection / civil / safety / general | `document-annotation` | — |
+| `color` | string | Hex color code | `document-annotation` | — |
+| `line_weight` | string | heavy / medium / light | `document-annotation` | — |
+| `layer` | string | Annotation layer name (RFI_REFERENCES, FIELD_NOTES, QC_MARKS, etc.) | `document-annotation` | — |
+| `created_by` | string | Creator name and role | `document-annotation` | — |
+| `created_date` | string | ISO 8601 creation date | `document-annotation` | — |
+| `modified_date` | string | ISO 8601 last modification date | `document-annotation` | — |
+| `linked_items` | object | Cross-references: rfi, asi, clash_id, punch_item, daily_report, spec_section | `document-annotation` | `rfi-preparer`, `punch-list`, `drawing-control` |
+| `status` | string | active / superseded / voided / archived | `document-annotation` | `drawing-control` |
+| `version_history[]` | array | Version records: version, date, action, by, notes | `document-annotation` | — |
+
+### `annotation_sets[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `set_id` | string | ASET-NNN identifier | `document-annotation` | — |
+| `name` | string | Annotation set name | `document-annotation` | — |
+| `description` | string | Set description | `document-annotation` | — |
+| `created_date` | string | ISO 8601 creation date | `document-annotation` | — |
+| `created_by` | string | Creator name and role | `document-annotation` | — |
+| `source_documents` | array | Source document references | `document-annotation` | `drawing-control` |
+| `annotation_ids` | array | ANN-NNN references included in this set | `document-annotation` | — |
+| `output_format` | string | annotated_pdf / annotated_image / html_view | `document-annotation` | — |
+| `output_path` | string | File path to generated output | `document-annotation` | — |
+| `distribution` | array | Recipient list | `document-annotation` | — |
+| `status` | string | draft / generated / distributed / archived | `document-annotation` | — |
+
+### `symbol_library`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| (keyed by symbol name) | object | Symbol definitions with type, size, fill, fill_color, label_position, border_color, head_style, dash_pattern, line_weight, reference_position | `document-annotation` | — |
+
+### `layer_definitions[]`
+| Field | Type | Description | Producers | Consumers |
+|-------|------|-------------|-----------|-----------|
+| `layer_name` | string | Internal layer name (e.g., RFI_REFERENCES, FIELD_NOTES) | `document-annotation` | — |
+| `display_name` | string | Human-readable layer name | `document-annotation` | — |
+| `default_color` | string | Hex default color for annotations on this layer | `document-annotation` | — |
+| `default_visibility` | boolean | Whether layer is visible by default | `document-annotation` | — |
+| `description` | string | Layer purpose description | `document-annotation` | — |
+
+---
+
 ## Cross-File Relationship Summary
 
 ```
@@ -569,4 +995,16 @@ submittal-log.json  ←→ procurement-log     (approval → procurement)
 procurement-log     ←→ rfi-log.json        (delay → alternate request)
 daily-report-data   ←→ labor-tracking      (headcount cross-validation)
 inspection-log      ←→ specs-quality       (hold points → inspection requirements)
+closeout-data.json  ←→ punch-list.json     (closeout items reference punch list completion)
+closeout-data.json  ←→ quality-data.json   (commissioning test results feed closeout status)
+closeout-data.json  ←→ drawing-log.json    (as-built drawing status tracked through closeout)
+risk-register.json  ←→ schedule.json       (schedule risk impacts and activity exposure)
+risk-register.json  ←→ cost-data.json      (cost contingency drawdowns and budget risk)
+risk-register.json  ←→ delay-log.json      (materialized risks become delay events)
+claims-log.json     ←→ delay-log.json      (delay events feed claims documentation)
+claims-log.json     ←→ change-order-log    (disputed COs escalate to claims)
+environmental-log   ←→ inspection-log      (SWPPP and environmental inspections)
+environmental-log   ←→ safety-log.json     (environmental incidents cross-ref safety)
+annotation-log.json ←→ drawing-log.json    (annotations reference controlled drawings)
+annotation-log.json ←→ rfi-log.json        (RFI markup annotations linked to RFIs)
 ```

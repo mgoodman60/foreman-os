@@ -123,6 +123,119 @@ Each KPI uses a tiered alert system with four levels: **info**, **warning**, **c
 **Update frequency**: Daily
 **Aggregation**: Report both average age and count per tier
 
+### 1.9 Closeout Completion
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Healthy | > 80% systems complete | On track for closeout | No action required |
+| Info | 60% < complete <= 80% | Closeout in progress | Track lagging systems; verify commissioning schedule |
+| Warning | 50% <= complete <= 60% | Closeout behind target | Escalate to PM; resource push on lagging systems |
+| Critical | complete < 50% | Closeout at risk | Owner notification; recovery plan required; assess substantial completion impact |
+
+**Data source**: `closeout-data.json` fields `systems[].completion_pct`
+**Calculation**: overall_closeout_pct = average(systems[].completion_pct)
+**Update frequency**: Weekly or upon closeout activity completion
+**Breakdown dimensions**: By system (HVAC, electrical, plumbing, fire protection, etc.); by component (commissioning, O&M, warranty, training)
+
+**Warranty Expiration Sub-Thresholds:**
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Info | Warranty expires in 61-90 days | Early warning | Schedule pre-expiration walkthrough |
+| Warning | Warranty expires in 31-60 days | Expiration approaching | Contact sub for warranty work; schedule inspections |
+| Critical | Warranty expires in <= 30 days | Imminent expiration | Urgent walkthrough; document all deficiencies before coverage ends |
+
+**Data source**: `closeout-data.json` fields `warranties[].expiration_date`
+**Calculation**: days_until_expiration = warranty.expiration_date - TODAY
+**Update frequency**: Daily (for warranties within 90-day window)
+
+### 1.10 Risk Exposure
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Healthy | Average risk exposure < 2.0 | Low risk profile | Monitor quarterly; maintain risk register |
+| Info | 2.0 <= exposure < 3.5 | Moderate risk profile | Monthly risk reviews; verify mitigation plans active |
+| Warning | 3.5 <= exposure < 5.0 | Elevated risk profile | Biweekly risk reviews; escalate top risks to PM; verify contingency adequacy |
+| Critical | exposure >= 5.0 | High risk profile | Weekly risk reviews; owner notification; contingency assessment; recovery planning |
+
+**Data source**: `risk-register.json` fields `risks[].probability`, `risks[].impact`, `risks[].status`
+**Calculation**: risk_exposure = probability * impact (per risk); average_exposure = mean of all active risks; max_exposure = highest single risk score
+**Update frequency**: Weekly or upon risk register update
+**Special rule**: Any single risk with exposure >= 7.0 triggers critical regardless of average
+
+**Contingency Burn Rate Sub-Thresholds (Risk-Specific):**
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Healthy | Burn rate <= projected rate | On track | No action required |
+| Warning | Burn rate 1.5x - 2.0x projected | Elevated burn | Review risk contingency allocations; assess if risks materializing faster than planned |
+| Critical | Burn rate > 2.0x projected | Rapid depletion | Freeze discretionary risk spending; reallocate contingency; owner notification |
+
+**Data source**: `risk-register.json` fields `risks[].contingency_allocated`, `risks[].contingency_spent`
+**Calculation**: projected_rate = total_risk_contingency / project_months_remaining; actual_rate = sum(contingency_spent) / months_elapsed; ratio = actual_rate / projected_rate
+
+### 1.11 Claims Status
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Info | Active claims exist, all within notice compliance | Claims tracked | Monitor claim progress; maintain documentation |
+| Warning | Total claimed amount > 5% of contract value OR documentation completeness < 70% | Claims exposure elevated | Legal review; strengthen documentation; review evidence chain |
+| Critical | Total claimed amount > 10% of contract value OR notice deadline within 7 days | Significant claims exposure | Immediate legal consultation; owner/PM notification; documentation sprint |
+
+**Data source**: `claims-log.json` fields `claims[].status`, `claims[].claimed_amount`, `claims[].documentation_completeness_pct`, `claims[].notice_required_by`
+**Calculation**: total_exposure = sum(claimed_amount for active claims); exposure_pct = total_exposure / original_contract_value * 100
+**Update frequency**: Weekly or upon claim status change
+
+**Notice Period Sub-Thresholds:**
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Info | Notice deadline > 14 days away | Monitor | Prepare notice documentation |
+| Warning | Notice deadline 8-14 days away | Deadline approaching | Finalize and review notice letter; prepare supporting evidence |
+| Critical | Notice deadline <= 7 days away | Urgent deadline | Send notice immediately; document delivery confirmation |
+
+**Data source**: `claims-log.json` fields `claims[].notice_required_by`, `claims[].notice_sent_date`
+**Calculation**: days_until_deadline = notice_required_by - TODAY; filter where notice_sent_date IS NULL
+**Special rule**: Any missed notice deadline (notice_required_by < TODAY AND notice_sent_date IS NULL) triggers severity 5 alert
+
+### 1.12 Environmental Compliance
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Healthy | All compliance rates > 90% | Full compliance | No action required |
+| Info | Any compliance rate 75% - 90% | Minor non-compliance | Track corrective actions; monitor trends |
+| Warning | Any compliance rate 50% - 75% | Compliance gaps | Agency notification risk; corrective action plan; escalate to PM |
+| Critical | Any compliance rate < 50% OR permit expiration <= 30 days | Compliance failure | Immediate corrective action; potential stop-work; regulatory notification risk |
+
+**Data source**: `environmental-log.json` fields `swppp`, `leed_credits[]`, `waste_diversion`, `hazmat`
+**Calculation**: Per-category compliance rates (see QP-ENV-001 in data-query-patterns.md)
+**Update frequency**: Weekly; daily for SWPPP during storm events
+
+**Permit Expiration Sub-Thresholds:**
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Info | Permit expires in 61-90 days | Renewal window | Begin renewal application process |
+| Warning | Permit expires in 31-60 days | Renewal urgent | Submit renewal application; follow up with agency |
+| Critical | Permit expires in <= 30 days | Imminent expiration | Emergency renewal; assess work stoppage risk |
+
+**SWPPP Inspection Frequency Sub-Thresholds:**
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Healthy | Inspections on schedule per required frequency | Compliant | No action required |
+| Warning | 1 missed inspection cycle | Inspection gap | Schedule make-up inspection; document reason for gap |
+| Critical | 2+ missed inspection cycles | Non-compliant | Immediate inspection; regulatory exposure; document remediation |
+
+**Waste Diversion Rate Sub-Thresholds:**
+
+| Tier | Range | Label | Action |
+|------|-------|-------|--------|
+| Healthy | Diversion rate >= target rate (typically 75%) | Meeting target | No action required |
+| Info | Diversion rate within 5% of target | Near target | Monitor waste streams; optimize sorting |
+| Warning | Diversion rate 10-20% below target | Below target | Review waste management plan; additional sorting measures |
+| Critical | Diversion rate > 20% below target | Failing target | LEED credit at risk; waste management plan overhaul; sub education |
+
 ---
 
 ## 2. Anomaly Detection Rules
@@ -272,6 +385,36 @@ Agents use these templates to generate human-readable alert descriptions. Placeh
 **Contingency Critical**:
 > CRITICAL: Contingency reserves are at {contingency_pct}%. Only ${remaining_amount} remains against pending claims of ${pending_claims}. Spending controls must be implemented immediately. Owner notification is required per contract Section {contract_section}.
 
+**Closeout Warning**:
+> Closeout completion is at {closeout_pct}% ({trend_direction}). {lagging_count} systems are below 60% completion: {system_list}. Commissioning tests pending: {pending_tests}. Open punch items by system: {punch_summary}. At the current pace, substantial completion target of {target_date} is {at_risk_status}.
+
+**Closeout Critical**:
+> CRITICAL: Closeout completion has fallen to {closeout_pct}%. {system_count} systems are below 50% complete with substantial completion {days_away} days away. Blocking items: {blocking_items}. O&M manuals outstanding: {oam_count}. Warranties not received: {warranty_count}. Immediate resource allocation and closeout recovery plan required.
+
+**Warranty Expiration Warning**:
+> {warranty_count} warranties expiring within 60 days: {warranty_list}. Schedule pre-expiration walkthroughs with responsible subs. Earliest expiration: {earliest_item} on {earliest_date} ({days_remaining} days).
+
+**Warranty Expiration Critical**:
+> CRITICAL: {warranty_count} warranties expiring within 30 days: {warranty_list}. Immediate walkthroughs required to document any deficiencies before coverage ends. Contact subs: {sub_contact_list}.
+
+**Risk Exposure Warning**:
+> Risk exposure has increased to an average of {avg_exposure} ({trend_direction}). {high_risk_count} risks rated high or critical. Top risk: {top_risk_description} (exposure: {top_exposure}). Mitigation completion rate: {mitigation_pct}%. Contingency allocated to risks: ${risk_contingency} ({risk_contingency_pct}% of total).
+
+**Risk Exposure Critical**:
+> CRITICAL: Risk exposure at {avg_exposure} average with {critical_count} critical risks. Highest exposure: {top_risk} at {top_exposure}. Risk contingency burn rate {burn_multiplier}x projected rate. {overdue_mitigation_count} overdue mitigation actions. Immediate risk review meeting and contingency reassessment required.
+
+**Claims Warning**:
+> Claims exposure at ${total_claimed} ({exposure_pct}% of contract value). {active_count} active claims. Documentation completeness: {doc_completeness_pct}%. Upcoming notice deadlines: {deadline_list}. Review evidence packages and legal strategy.
+
+**Claims Critical**:
+> CRITICAL: Claims exposure has reached ${total_claimed} ({exposure_pct}% of contract value). {deadline_count} notice deadlines within 7 days: {urgent_deadlines}. Legal consultation required immediately. Ensure all contemporaneous records are preserved and organized.
+
+**Environmental Warning**:
+> Environmental compliance has dropped to {compliance_pct}% in {category}. {finding_count} open corrective actions. SWPPP: {swppp_status}. Waste diversion: {diversion_rate}% vs {target_rate}% target. LEED credits at risk: {at_risk_credits}. Review environmental management plan.
+
+**Environmental Critical**:
+> CRITICAL: Environmental compliance failure in {category}: {compliance_pct}%. {permit_status}. Regulatory notification may be required. {critical_findings}. Immediate corrective action and agency coordination needed. Potential work stoppage if not resolved within {deadline}.
+
 ### 5.2 Anomaly Alerts
 
 **Headcount Swing**:
@@ -310,3 +453,12 @@ Each KPI and anomaly rule reads from specific JSON files. This table provides a 
 | Delay acceleration | delay-log.json | delays[].delay_days, .date_identified, .cause | schedule.json | critical_path (impact assessment) |
 | Inspection clustering | inspection-log.json | inspections[].result, .location, .sub_name, .date | quality-data.json | first_pass_inspection_results[] |
 | Cost variance spike | cost-data.json | divisions[].actual_cost, .budgeted_cost | change-order-log.json | change_orders[].division, .amount |
+| Closeout completion | closeout-data.json | systems[].completion_pct, .commissioning_status | quality-data.json | system_tests[].result |
+| Warranty expiration | closeout-data.json | warranties[].expiration_date | directory.json | subs[].name (responsible sub) |
+| Risk exposure | risk-register.json | risks[].probability, .impact, .status | schedule.json | activities[].is_critical (impact assessment) |
+| Risk contingency burn | risk-register.json | risks[].contingency_allocated, .contingency_spent | cost-data.json | contingency (cross-validation) |
+| Claims status | claims-log.json | claims[].status, .claimed_amount, .documentation_completeness_pct | change-order-log.json | change_orders[].co_number, .amount |
+| Claims notice deadline | claims-log.json | claims[].notice_required_by, .notice_sent_date | — | — |
+| Environmental compliance | environmental-log.json | swppp, leed_credits[], waste_diversion, hazmat | inspection-log.json | inspections[].type, .result |
+| SWPPP frequency | environmental-log.json | swppp.inspections[].date, .required_frequency | daily-report-data.json | entries[].weather (storm triggers) |
+| Waste diversion | environmental-log.json | waste_diversion.diversion_rate, .target_rate | — | — |

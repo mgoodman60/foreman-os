@@ -63,6 +63,37 @@ Read every deadline-bearing file and extract all records with dates representing
 - Filter for status: "active", "pending_documentation"
 - Delay notice deadlines are often contractually mandated with strict time limits
 
+**closeout-data.json**:
+- `closeout_items[].due_date`, `.warranty_start_date`, `.warranty_expiration_date`
+- `commissioning_schedule[].test_date`, `.completion_deadline`
+- Substantial completion and final completion punch walkthrough deadlines
+- Warranty submission deadlines per specification requirements
+- O&M manual delivery deadlines and training session dates
+- Attic stock delivery deadlines
+- Filter for status: "pending", "in_progress", "scheduled"
+- Cross-reference `schedule.json` for closeout phase milestone dates
+
+**claims-log.json**:
+- `claims[].notice_deadline`, `.response_due_date`, `.documentation_deadline`
+- `claims[].notice_records[].due_date` for multi-step notice requirements
+- Contractual notice windows are typically hard deadlines -- missing them can waive entitlement entirely
+- Filter for status: "open", "pending_notice", "pending_documentation", "under_review"
+- Cross-reference `project-config.json` `contract.notice_periods[]` for default claim notice windows
+
+**environmental-log.json**:
+- `permits[].expiration_date`, `.renewal_deadline`
+- `swppp_inspections[].next_due_date`, `.corrective_action_deadline`
+- `leed_submissions[].due_date` for LEED credit documentation deadlines
+- `waste_reports[].submission_deadline` for regulatory waste reporting
+- `hazmat_clearances[].expiration_date` for hazmat handling certifications
+- Filter for active permits and compliance requirements
+- Environmental permit expirations are hard deadlines -- operating without a valid permit triggers regulatory action
+
+**risk-register.json**:
+- `risks[].mitigation_actions[].due_date` for risk mitigation task deadlines
+- Filter for status: "open", "in_progress"
+- Cross-reference `schedule.json` for risk trigger dates tied to activities
+
 ### Step 2: Calculate Urgency
 
 For each deadline:
@@ -139,6 +170,10 @@ Produce the report following the Output Format below. For OVERDUE and TODAY item
 | `project-config.json` | `contract.substantial_completion`, `.final_completion`, `.notice_periods[]`, `.permit_expirations[]` | Contract deadlines |
 | `delay-log.json` | `delays[].documentation_due`, `.notice_deadline` | Delay documentation deadlines |
 | `directory.json` | `subcontractors[].foreman` (name, phone) | Responsible party lookup |
+| `closeout-data.json` | `closeout_items[].due_date`, `commissioning_schedule[].completion_deadline`, `warranty_expiration_date` | Closeout, commissioning, and warranty deadlines |
+| `claims-log.json` | `claims[].notice_deadline`, `.response_due_date`, `.documentation_deadline` | Claims notice windows and response deadlines |
+| `environmental-log.json` | `permits[].expiration_date`, `swppp_inspections[].next_due_date`, `leed_submissions[].due_date` | Environmental permit and compliance deadlines |
+| `risk-register.json` | `risks[].mitigation_actions[].due_date` | Risk mitigation action deadlines |
 | `cost-data.json` | `earned_value` fields for burn rate estimation | Financial exposure calculation |
 
 ## Output Format
@@ -212,6 +247,10 @@ MISSING DATA:
 - submittal-log.json -- submittal deadlines not tracked
 - rfi-log.json -- RFI response deadlines not tracked
 - procurement-log.json -- material delivery deadlines not tracked
+- closeout-data.json -- closeout, commissioning, and warranty deadlines not tracked
+- claims-log.json -- claims notice windows and response deadlines not tracked
+- environmental-log.json -- environmental permit and compliance deadlines not tracked
+- risk-register.json -- risk mitigation action deadlines not tracked
 - [continue for all missing files]
 
 Recommendation: Run /set-project to configure the project and process contract documents,

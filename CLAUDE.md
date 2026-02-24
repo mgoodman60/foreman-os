@@ -44,7 +44,7 @@ Agents are autonomous definitions in `agents/` with YAML frontmatter (`name`, `d
 | Agent | Role |
 |-------|------|
 | superintendent-assistant | Top-level router to the 9 specialized agents below |
-| data-integrity-watchdog | Validates consistency across all 23 JSON files |
+| data-integrity-watchdog | Validates consistency across all 28 JSON files |
 | project-health-monitor | Evaluates 8 KPIs and 5 anomaly detection rules |
 | dashboard-intelligence-analyst | Generates dashboard views and executive briefings |
 | project-data-navigator | Translates natural language questions to data queries |
@@ -54,7 +54,7 @@ Agents are autonomous definitions in `agents/` with YAML frontmatter (`name`, `d
 | weekly-planning-coordinator | Last Planner System cycle with constraint analysis |
 | doc-orchestrator | Coordinates extraction pipelines and validates output |
 
-Agents are read-only — they query the 23-file data store but never modify data without user approval. They consume reference docs from `skills/project-data/references/` for thresholds, query patterns, and validation rules.
+Agents are read-only — they query the 28-file data store but never modify data without user approval. They consume reference docs from `skills/project-data/references/` for thresholds, query patterns, and validation rules.
 
 ### Cowork vs Claude Code Plugins
 - The main `foreman-os` plugin (defined in `.claude-plugin/`) works in both Cowork and Claude Code — this includes all skills, commands, and agents
@@ -68,7 +68,7 @@ Agents are read-only — they query the 23-file data store but never modify data
 - The `project-data` skill (`skills/project-data/SKILL.md`) is the central data backbone — nearly every command reads it first
 
 ### Data Flow
-Documents → `document-intelligence` skill (three-pass extraction) → structured JSON files → consumed by all other commands/skills. The multi-file data store includes 23 JSON files:
+Documents → `document-intelligence` skill (three-pass extraction) → structured JSON files → consumed by all other commands/skills. The multi-file data store includes 28 JSON files:
 - `project-config.json` — master config, folder mapping, document tracking
 - `plans-spatial.json` — grid lines, rooms, quantities, site layout
 - `specs-quality.json` — spec sections, materials, thresholds, tolerances
@@ -76,14 +76,15 @@ Documents → `document-intelligence` skill (three-pass extraction) → structur
 - `directory.json` — subs, vendors, assignments
 - Various `*-log.json` files for RFIs, submittals, procurement, delays, etc.
 - `cost-data.json`, `safety-log.json`, `labor-tracking.json`, `quality-data.json`, `daily-report-data.json`, `daily-report-intake.json`, `visual-context.json`, `rendering-log.json`, `drawing-log.json`
+- `closeout-data.json`, `risk-register.json`, `claims-log.json`, `environmental-log.json`, `annotation-log.json`
 
 #### Pipeline Reference Documentation
 The `project-data` skill has ten reference documents in `skills/project-data/references/`:
 
 **Pipeline architecture (3):**
-- **`json-schema-reference.md`** — Complete schema for all 23 JSON files with producer/consumer mapping per field
+- **`json-schema-reference.md`** — Complete schema for all 28 JSON files with producer/consumer mapping per field
 - **`data-flow-map.md`** — Pipeline architecture with ASCII diagrams: Documents → document-intelligence → JSON store → downstream skills
-- **`cross-reference-patterns.md`** — Seven codified cross-referencing patterns (Sub→Scope→Spec→Inspection, Location→Grid→Area→Room, WorkType→Weather→Threshold, Element→AssemblyChain→MultiSheet, RFI→Submittal→Procurement, Assembly→Schedule→EarnedValue, DualSource→UtilityReconciliation)
+- **`cross-reference-patterns.md`** — Twelve codified cross-referencing patterns (Sub→Scope→Spec→Inspection, Location→Grid→Area→Room, WorkType→Weather→Threshold, Element→AssemblyChain→MultiSheet, RFI→Submittal→Procurement, Assembly→Schedule→EarnedValue, DualSource→UtilityReconciliation, Risk→Schedule→Cost, Claims→Delay→CO, Environmental→Inspection→Safety, Closeout→Quality→Drawing, Annotation→Drawing→RFI)
 
 **Agent-supporting (4 — consumed by agents for thresholds, queries, and validation):**
 - **`alert-thresholds.md`** — KPI thresholds, anomaly detection rules, and severity scoring for project-health-monitor and dashboard-intelligence-analyst agents
@@ -97,7 +98,7 @@ The `project-data` skill has ten reference documents in `skills/project-data/ref
 - **`skill-detail.md`** — Detailed skill capability mapping
 
 #### Downstream Skill Auto-Population
-Twenty-one downstream skills have explicit "Project Intelligence Integration" sections that tell the AI exactly which JSON files and field paths to read for auto-populating data. This eliminates guesswork — each skill names its data sources:
+Eighteen downstream skills have explicit "Project Intelligence Integration" (or "Auto-Population" / "Auto-Linking") sections that tell the AI exactly which JSON files and field paths to read for auto-populating data. This eliminates guesswork — each skill names its data sources:
 - `punch-list` — location from plans-spatial, sub from directory, spec cross-ref, drawing ref, schedule impact
 - `inspection-tracker` — hold points from specs-quality, weather check, spec deep-link, schedule activity, drawing ref
 - `safety-management` — weather alerts from specs-quality, safety zones, utility locations, sub safety performance

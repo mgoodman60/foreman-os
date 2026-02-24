@@ -62,6 +62,11 @@ Read `schedule.json` -> `activities[]`. Filter for:
 
 For each, extract: name, remaining duration, assigned sub, predecessor status, total float, critical path flag, location reference.
 
+Additionally, pull from supplementary sources:
+- **Risk mitigation tasks**: Read `risk-register.json` for mitigation actions with due dates within the planning window. These are non-schedule activities that require tracking alongside committed work. Filter for status "open" or "in_progress" with due dates in the planning period. Include risk ID, mitigation description, owner, and the risk consequence if the mitigation is not completed on time.
+- **Closeout activities**: Read `closeout-data.json` for closeout items with deadlines within the planning window. Include commissioning tests, warranty submissions, O&M manual deliveries, punch completion targets, and training sessions. Cross-reference `schedule.json` for closeout phase activities. During closeout phase, these items may dominate the weekly plan.
+- **Environmental compliance tasks**: Read `environmental-log.json` for SWPPP inspections, permit renewals, waste reporting deadlines, and corrective actions due within the planning window.
+
 Sort by priority: carry-forwards first, then critical path (float = 0), near-critical (float <= 5), predecessor-unlocked, then by early start date. Flag zero/negative float activities.
 
 ### Step 3: Constraint Analysis
@@ -131,6 +136,10 @@ Assemble all components into the output format. Scannable in under 2 minutes, ac
 | inspection-log.json | Inspection history, upcoming inspections, pass/fail records |
 | daily-report-data.json | Weather data for forecast context |
 | plans-spatial.json | Location references -- building areas, grid lines |
+| risk-register.json | Risk mitigation actions with due dates within planning window |
+| closeout-data.json | Closeout items, commissioning tests, warranty deadlines, training sessions |
+| environmental-log.json | SWPPP inspections, permit renewals, waste reporting, corrective actions |
+| claims-log.json | Claims notice deadlines and documentation requirements within planning window |
 | alert-thresholds.md | PPC tier definitions (>85% Healthy, 70-85% Info, 60-70% Warning, <=60% Critical) |
 | cross-reference-patterns.md | Pattern 1 (Sub -> Spec -> Inspection), Pattern 5 (RFI -> Submittal -> Procurement), Pattern 6 (Schedule -> EarnedValue) |
 
@@ -210,6 +219,21 @@ MATERIAL DELIVERIES:
 | Date | Material | Qty | Supplier | For Activity | Certs |
 |------|----------|-----|----------|-------------|-------|
 | [date] | [material] | [qty] | [supplier] | [activity] | [status] |
+
+RISK MITIGATION ACTIONS:
+| Risk ID | Mitigation Action | Owner | Due By | Status | Consequence if Missed |
+|---------|------------------|-------|--------|--------|-----------------------|
+| RISK-[ID] | [action description] | [name] | [date] | [New/In Progress] | [risk consequence] |
+
+CLOSEOUT ITEMS (if in closeout phase):
+| Item | Type | Sub/Owner | Due By | Status |
+|------|------|-----------|--------|--------|
+| [item] | [commissioning/warranty/O&M/punch/training] | [name] | [date] | [status] |
+
+ENVIRONMENTAL COMPLIANCE:
+| Item | Type | Due By | Status |
+|------|------|--------|--------|
+| [item] | [SWPPP inspection/permit renewal/waste report] | [date] | [Scheduled/Due/Overdue] |
 
 WEATHER OUTLOOK:
 | Day | High/Low | Precip | Wind | Affected Activities | Threshold | Status |

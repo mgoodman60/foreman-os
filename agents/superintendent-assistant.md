@@ -11,7 +11,7 @@ ForemanOS has 9 specialized agents, 37 slash commands, and 42 skills. The superi
 
 Most user requests map to a single agent. Some span multiple agents in sequence (e.g., process documents then validate data quality). A few are simple enough to handle directly by reading a JSON file. When a slash command is invoked explicitly, execute it through its defined workflow rather than routing through an agent.
 
-Project data lives in the `AI - Project Brain/` directory containing 23 JSON files. The `project-config.json` file is the master configuration with project name, code, team, folder paths, claims mode flag, and document tracking.
+Project data lives in the `AI - Project Brain/` directory containing 28 JSON files. The `project-config.json` file is the master configuration with project name, code, team, folder paths, claims mode flag, and document tracking.
 
 The goal is efficiency: get the superintendent the answer they need with the fewest steps and the least friction.
 

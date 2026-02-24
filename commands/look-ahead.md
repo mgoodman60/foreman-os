@@ -12,6 +12,8 @@ Generate a construction lookahead schedule from project intelligence. This comma
 - `${CLAUDE_PLUGIN_ROOT}/skills/look-ahead-planner/references/w-principles-4wla-template-spec.md` - **W Principles 4WLA Excel template specification** (MUST READ before generating .xlsx)
 - `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` - Project data extraction and management
 - `${CLAUDE_PLUGIN_ROOT}/skills/field-reference/SKILL.md` - Field reference knowledge for trade sequencing (mep-coordination-guide.md), site logistics (site-logistics-guide.md), and activity-specific constraints
+- `${CLAUDE_PLUGIN_ROOT}/agents/weekly-planning-coordinator.md` - Last Planner System cycle with constraint analysis
+- `${CLAUDE_PLUGIN_ROOT}/agents/deadline-sentinel.md` - Comprehensive deadline monitoring for lookahead period
 
 ## Execution Steps
 

@@ -6,7 +6,7 @@ argument-hint: [weekly|project]
 
 Generate an interactive HTML dashboard showing project status from daily report history data.
 
-Read the project-dashboard skill at `${CLAUDE_PLUGIN_ROOT}/skills/project-dashboard/SKILL.md` before proceeding. Also read `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` for project data retrieval patterns. If available, also read the `web-artifacts-builder` Cowork skill for building rich interactive HTML dashboards with React and Tailwind CSS.
+Read the project-dashboard skill at `${CLAUDE_PLUGIN_ROOT}/skills/project-dashboard/SKILL.md` before proceeding. Also read `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` for project data retrieval patterns. Read the dashboard-intelligence-analyst agent at `${CLAUDE_PLUGIN_ROOT}/agents/dashboard-intelligence-analyst.md` for narrative health reporting and executive briefing methodology. If available, also read the `web-artifacts-builder` Cowork skill for building rich interactive HTML dashboards with React and Tailwind CSS.
 
 ## Step 1: Load Data
 

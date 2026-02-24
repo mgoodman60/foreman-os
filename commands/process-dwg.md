@@ -6,7 +6,7 @@ argument-hint: [filename.dwg]
 
 Process AutoCAD DWG files (.dwg) to extract survey points, utility structures, contours, property data, erosion control keynotes, and grading information. Converts DWG to DXF via libredwg, then parses all entity types into structured project data.
 
-Read the dwg-extraction skill at `${CLAUDE_PLUGIN_ROOT}/skills/dwg-extraction/SKILL.md` and the project-data skill at `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` before proceeding.
+Read the dwg-extraction skill at `${CLAUDE_PLUGIN_ROOT}/skills/dwg-extraction/SKILL.md` and the project-data skill at `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` before proceeding. After extraction is complete, read the doc-orchestrator agent at `${CLAUDE_PLUGIN_ROOT}/agents/doc-orchestrator.md` to validate extraction output and ensure data quality.
 
 ## Step 1: Locate the DWG File
 

@@ -265,6 +265,110 @@ After processing each document type, verify that the corresponding JSON files an
 | `change-order-log.json` -> `change_order_log[].affected_spec_sections` | Yes | No | Impacted spec sections |
 | `change-order-log.json` -> `change_order_log[].affected_subs` | Yes | No | Impacted subcontractors |
 
+### 2.11 Closeout Data
+
+**Target Files:** `closeout-data.json`
+
+| Field Path | Expected | Required | Notes |
+|-----------|----------|----------|-------|
+| `closeout-data.json` -> `systems[].system_name` | Yes | Yes | Building system identifier (HVAC, Plumbing, Electrical, etc.) |
+| `closeout-data.json` -> `systems[].commissioning_status` | Yes | Yes | not_started/in_progress/complete |
+| `closeout-data.json` -> `systems[].oam_manual_status` | Yes | Yes | not_submitted/submitted/approved |
+| `closeout-data.json` -> `systems[].warranty_status` | Yes | Yes | not_received/received/filed |
+| `closeout-data.json` -> `systems[].training_status` | Yes | No | not_scheduled/scheduled/complete |
+| `closeout-data.json` -> `systems[].completion_pct` | Yes | Yes | 0-100 overall closeout completion for system |
+| `closeout-data.json` -> `warranties[].item` | Yes | Yes | Warranted item description |
+| `closeout-data.json` -> `warranties[].sub_name` | Yes | Yes | Responsible subcontractor |
+| `closeout-data.json` -> `warranties[].start_date` | Yes | Yes | Warranty start date (ISO 8601) |
+| `closeout-data.json` -> `warranties[].expiration_date` | Yes | Yes | Warranty end date (ISO 8601) |
+| `closeout-data.json` -> `warranties[].warranty_type` | Yes | No | manufacturer/installer/extended |
+| `closeout-data.json` -> `warranties[].duration_months` | Yes | No | Warranty period in months |
+
+### 2.12 Risk Register
+
+**Target Files:** `risk-register.json`
+
+| Field Path | Expected | Required | Notes |
+|-----------|----------|----------|-------|
+| `risk-register.json` -> `risks[].risk_id` | Yes | Yes | RSK-NNN identifier |
+| `risk-register.json` -> `risks[].description` | Yes | Yes | Risk description |
+| `risk-register.json` -> `risks[].category` | Yes | Yes | schedule/cost/safety/quality/external |
+| `risk-register.json` -> `risks[].probability` | Yes | Yes | 0.0-1.0 likelihood |
+| `risk-register.json` -> `risks[].impact` | Yes | Yes | 1-10 impact score |
+| `risk-register.json` -> `risks[].status` | Yes | Yes | active/mitigated/occurred/closed |
+| `risk-register.json` -> `risks[].risk_owner` | Yes | Yes | Person responsible for mitigation |
+| `risk-register.json` -> `risks[].mitigation_plan` | Yes | No | Planned response description |
+| `risk-register.json` -> `risks[].mitigation_status` | Yes | No | not_started/in_progress/complete |
+| `risk-register.json` -> `risks[].contingency_allocated` | Yes | No | Dollar amount reserved |
+| `risk-register.json` -> `risks[].contingency_spent` | Yes | No | Dollar amount used |
+| `risk-register.json` -> `risks[].linked_activity_id` | Yes | No | Schedule activity this risk threatens |
+| `risk-register.json` -> `risks[].trigger_date` | Yes | No | Date by which risk must be addressed |
+
+### 2.13 Claims Log
+
+**Target Files:** `claims-log.json`
+
+| Field Path | Expected | Required | Notes |
+|-----------|----------|----------|-------|
+| `claims-log.json` -> `claims[].claim_id` | Yes | Yes | CLM-NNN identifier |
+| `claims-log.json` -> `claims[].description` | Yes | Yes | Claim description |
+| `claims-log.json` -> `claims[].claim_type` | Yes | Yes | time_extension/cost/acceleration/differing_conditions |
+| `claims-log.json` -> `claims[].status` | Yes | Yes | draft/notice_sent/filed/under_review/negotiation/resolved/denied |
+| `claims-log.json` -> `claims[].claimed_amount` | Yes | Yes | Dollar amount claimed |
+| `claims-log.json` -> `claims[].claimed_days` | Yes | No | Time extension days claimed |
+| `claims-log.json` -> `claims[].date_filed` | Yes | Yes | Date claim was filed (ISO 8601) |
+| `claims-log.json` -> `claims[].notice_required_by` | Yes | Yes | Contractual notice deadline |
+| `claims-log.json` -> `claims[].notice_sent_date` | Yes | No | Date notice was actually sent |
+| `claims-log.json` -> `claims[].formal_claim_deadline` | Yes | No | Deadline for formal claim submission |
+| `claims-log.json` -> `claims[].contract_notice_period_days` | Yes | No | Required notice period per contract |
+| `claims-log.json` -> `claims[].documentation_completeness_pct` | Yes | No | 0-100 evidence package completeness |
+| `claims-log.json` -> `claims[].related_delay_ids` | Yes | No | Linked delay-log entries |
+| `claims-log.json` -> `claims[].related_co_ids` | Yes | No | Linked change order numbers |
+| `claims-log.json` -> `claims[].evidence_documents[]` | Yes | No | Supporting documentation references |
+
+### 2.14 Environmental Log
+
+**Target Files:** `environmental-log.json`
+
+| Field Path | Expected | Required | Notes |
+|-----------|----------|----------|-------|
+| `environmental-log.json` -> `leed_credits[].credit_id` | Yes | No | LEED credit identifier |
+| `environmental-log.json` -> `leed_credits[].status` | Yes | No | on_track/at_risk/achieved/not_applicable |
+| `environmental-log.json` -> `leed_credits[].points_available` | Yes | No | Points available for this credit |
+| `environmental-log.json` -> `leed_credits[].points_achieved` | Yes | No | Points earned to date |
+| `environmental-log.json` -> `swppp.inspections[].date` | Yes | Yes (if SWPPP active) | Inspection date (ISO 8601) |
+| `environmental-log.json` -> `swppp.inspections[].inspector` | Yes | No | Inspector name |
+| `environmental-log.json` -> `swppp.inspections[].result` | Yes | Yes (if SWPPP active) | pass/fail/pass_with_findings |
+| `environmental-log.json` -> `swppp.inspections[].findings[]` | Yes | No | Inspection findings |
+| `environmental-log.json` -> `swppp.inspections[].corrective_actions[]` | Yes | No | Required corrective actions |
+| `environmental-log.json` -> `swppp.permit_expiration` | Yes | Yes (if SWPPP active) | Permit expiration date |
+| `environmental-log.json` -> `swppp.required_frequency` | Yes | Yes (if SWPPP active) | Required inspection frequency in days |
+| `environmental-log.json` -> `waste_diversion.total_waste_tons` | Yes | No | Total waste generated |
+| `environmental-log.json` -> `waste_diversion.diverted_tons` | Yes | No | Waste diverted from landfill |
+| `environmental-log.json` -> `waste_diversion.diversion_rate` | Yes | No | Diversion percentage |
+| `environmental-log.json` -> `hazmat.incidents[].date` | Yes | No | Incident date |
+| `environmental-log.json` -> `hazmat.incidents[].type` | Yes | No | spill/release/exposure/storage_violation |
+| `environmental-log.json` -> `hazmat.incidents[].status` | Yes | No | open/resolved/reported_to_agency |
+
+### 2.15 Annotation Log
+
+**Target Files:** `annotation-log.json`
+
+| Field Path | Expected | Required | Notes |
+|-----------|----------|----------|-------|
+| `annotation-log.json` -> `annotations[].annotation_id` | Yes | Yes | ANN-NNN identifier |
+| `annotation-log.json` -> `annotations[].document_id` | Yes | Yes | Sheet number or document reference |
+| `annotation-log.json` -> `annotations[].document_type` | Yes | Yes | plans/specs/submittals/rfis |
+| `annotation-log.json` -> `annotations[].annotation_type` | Yes | Yes | comment/markup/revision_cloud/dimension_override |
+| `annotation-log.json` -> `annotations[].description` | Yes | Yes | Annotation content |
+| `annotation-log.json` -> `annotations[].author` | Yes | Yes | Who created the annotation |
+| `annotation-log.json` -> `annotations[].assigned_to` | Yes | No | Who needs to respond |
+| `annotation-log.json` -> `annotations[].date_created` | Yes | Yes | Creation date (ISO 8601) |
+| `annotation-log.json` -> `annotations[].status` | Yes | Yes | open/in_review/pending_response/resolved/closed |
+| `annotation-log.json` -> `annotations[].priority` | Yes | No | low/medium/high/critical |
+| `annotation-log.json` -> `annotations[].linked_rfi_id` | Yes | No | RFI generated from this annotation |
+| `annotation-log.json` -> `annotations[].distribution[]` | Yes | No | List of parties who received the annotation |
+
 ---
 
 ## 3. DWG Extraction Pipeline Validation
@@ -365,23 +469,37 @@ Date Format:
   ACTION:  Convert to ISO 8601 before storing
 
 ID Format:
-  RFI:     "RFI-NNN" (e.g., RFI-001, RFI-042)
-  Submittal: "SUB-X-NNN" (e.g., SUB-C-005, SUB-S-002)
-  CO:      "CO-NNN" (e.g., CO-001)
-  Punch:   "PUNCH-NNN" (e.g., PUNCH-001)
-  Inspect: "INSP-NNN" (e.g., INSP-001)
-  Procure: "PROC-NNN" (e.g., PROC-012)
-  Meeting: "MTG-NNN" (e.g., MTG-001)
+  RFI:        "RFI-NNN" (e.g., RFI-001, RFI-042)
+  Submittal:  "SUB-X-NNN" (e.g., SUB-C-005, SUB-S-002)
+  CO:         "CO-NNN" (e.g., CO-001)
+  Punch:      "PUNCH-NNN" (e.g., PUNCH-001)
+  Inspect:    "INSP-NNN" (e.g., INSP-001)
+  Procure:    "PROC-NNN" (e.g., PROC-012)
+  Meeting:    "MTG-NNN" (e.g., MTG-001)
+  Risk:       "RSK-NNN" (e.g., RSK-001, RSK-015)
+  Claim:      "CLM-NNN" (e.g., CLM-001, CLM-004)
+  Annotation: "ANN-NNN" (e.g., ANN-001, ANN-045)
   ACTION:  Auto-increment from highest existing ID if not provided
 
 Status Enums (by record type):
-  RFI:        draft | issued | response_received | resolved | void
-  Submittal:  submitted | under_review | approved | revise_and_resubmit | rejected
-  CO:         draft | submitted | under_review | approved | rejected | void
-  Punch:      open | in_progress | completed | back_charge | disputed
-  Inspection: scheduled | pass | fail | conditional | cancelled
-  Procurement: ordered | shipped | delivered | delayed
-  Sub Status: active | mobilized | demobilized
+  RFI:           draft | issued | response_received | resolved | void
+  Submittal:     submitted | under_review | approved | revise_and_resubmit | rejected
+  CO:            draft | submitted | under_review | approved | rejected | void
+  Punch:         open | in_progress | completed | back_charge | disputed
+  Inspection:    scheduled | pass | fail | conditional | cancelled
+  Procurement:   ordered | shipped | delivered | delayed
+  Sub Status:    active | mobilized | demobilized
+  Risk:          active | mitigated | occurred | closed
+  Risk Mitigation: not_started | in_progress | complete
+  Claim:         draft | notice_sent | filed | under_review | negotiation | resolved | denied
+  Closeout System: not_started | in_progress | complete
+  O&M Manual:   not_submitted | submitted | approved
+  Warranty:      not_received | received | filed
+  Training:      not_scheduled | scheduled | complete
+  Environmental: pass | fail | pass_with_findings
+  Hazmat:        open | resolved | reported_to_agency
+  LEED Credit:   on_track | at_risk | achieved | not_applicable
+  Annotation:    open | in_review | pending_response | resolved | closed
   ACTION:  Reject unknown enum values; prompt for correction
 
 Currency Format:
@@ -409,6 +527,14 @@ After any extraction run (document-intelligence, dwg-extraction, or manual entry
 | XF-07 | Procurement-Submittal links | `procurement-log.json`, `submittal-log.json` | Every `submittal_id` in procurement-log maps to a submittal-log entry |
 | XF-08 | CO spec sections valid | `change-order-log.json`, `specs-quality.json` | Every `affected_spec_sections` entry maps to a `spec_sections[].section` |
 | XF-09 | CO sub names valid | `change-order-log.json`, `directory.json` | Every `affected_subs` entry maps to a `subcontractors[].name` |
+| XF-10a | Risk activity IDs valid | `risk-register.json`, `schedule.json` | Every `linked_activity_id` maps to an `activities[].activity_id` |
+| XF-11a | Closeout sub names valid | `closeout-data.json`, `directory.json` | Every `warranties[].sub_name` maps to a `subcontractors[].name` |
+| XF-12a | Claims delay IDs valid | `claims-log.json`, `delay-log.json` | Every `related_delay_ids[]` entry maps to a `delays[].delay_id` |
+| XF-13a | Claims CO IDs valid | `claims-log.json`, `change-order-log.json` | Every `related_co_ids[]` entry maps to a `change_orders[].co_number` |
+| XF-14a | Annotation document IDs valid | `annotation-log.json`, `drawing-log.json` | Every `document_id` for `document_type == "plans"` maps to a `drawings[].sheet_number` |
+| XF-15a | Annotation RFI links valid | `annotation-log.json`, `rfi-log.json` | Every `linked_rfi_id` maps to an `rfis[].rfi_number` |
+| XF-16a | Closeout system tests exist | `closeout-data.json`, `quality-data.json` | Each system in `systems[]` has corresponding `system_tests[]` entries |
+| XF-17a | Environmental inspection cross-ref | `environmental-log.json`, `inspection-log.json` | SWPPP inspections correlate with environmental inspection entries |
 
 ### 5.2 Cross-Reference Pattern Integrity
 
@@ -477,6 +603,66 @@ IF both document-intelligence AND dwg-extraction have run:
       FLAG any unresolved conflicts (e.g., pipe size mismatch)
     IF only one source:
       INFO "Single-source utility data for {system} — no reconciliation needed"
+```
+
+**Pattern 8: Risk -> Schedule -> Cost**
+```
+FOR each risk in risk-register.json -> risks[] where status == "active":
+  IF risk.linked_activity_id IS NOT NULL:
+    VERIFY linked_activity_id exists in schedule.json -> activities[]
+    CHECK if linked activity is on critical path
+  IF risk.contingency_allocated > 0:
+    VERIFY total risk contingency <= cost-data.json -> contingency.original_amount
+  VERIFY probability is between 0.0 and 1.0
+  VERIFY impact is between 1 and 10
+```
+
+**Pattern 9: Claims -> Delay -> CO**
+```
+FOR each claim in claims-log.json -> claims[]:
+  FOR each delay_id in claim.related_delay_ids:
+    VERIFY delay_id exists in delay-log.json -> delays[]
+  FOR each co_id in claim.related_co_ids:
+    VERIFY co_id exists in change-order-log.json -> change_orders[]
+  IF claim.notice_required_by IS NOT NULL AND claim.notice_sent_date IS NOT NULL:
+    VERIFY notice_sent_date <= notice_required_by (notice compliance)
+  VERIFY claimed_amount is numeric and positive
+  VERIFY date sequence: date_filed <= formal_claim_deadline (if both present)
+```
+
+**Pattern 10: Environmental -> Inspection -> Safety**
+```
+FOR each swppp_inspection in environmental-log.json -> swppp.inspections[]:
+  IF swppp_inspection.result == "fail":
+    CHECK for corresponding corrective_actions[] entries
+    VERIFY each corrective action has due_date and status
+  CHECK if inspection date aligns with required_frequency
+FOR each hazmat_incident in environmental-log.json -> hazmat.incidents[]:
+  CHECK for corresponding entry in safety-log.json -> incidents[] by date and location
+  VERIFY incident status is valid enum value
+```
+
+**Pattern 11: Closeout -> Quality -> Drawing**
+```
+FOR each system in closeout-data.json -> systems[]:
+  IF system.commissioning_status IN ("in_progress", "complete"):
+    VERIFY quality-data.json -> system_tests[] has entries for this system
+  CHECK drawing-log.json for as-built drawings matching this system's discipline
+FOR each warranty in closeout-data.json -> warranties[]:
+  VERIFY warranty.sub_name exists in directory.json -> subcontractors[]
+  VERIFY warranty.start_date < warranty.expiration_date
+  VERIFY warranty.expiration_date is valid ISO 8601
+```
+
+**Pattern 12: Annotation -> Drawing -> RFI**
+```
+FOR each annotation in annotation-log.json -> annotations[]:
+  IF annotation.document_type == "plans":
+    VERIFY annotation.document_id exists in drawing-log.json -> drawings[].sheet_number
+  IF annotation.linked_rfi_id IS NOT NULL:
+    VERIFY linked_rfi_id exists in rfi-log.json -> rfis[].rfi_number
+  VERIFY date_created is valid ISO 8601
+  VERIFY status is valid enum (open/in_review/pending_response/resolved/closed)
 ```
 
 ### 5.3 Temporal Consistency

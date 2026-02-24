@@ -290,13 +290,48 @@ Write changes to ONLY the data files affected by this processing run. Always upd
 
 Regenerate `CLAUDE.md` with the latest intelligence including scale data summary.
 
-## Step 8: Summarize and Checkpoint
+## Step 8: Post-Extraction Agent Validation
+
+After saving extracted data (Step 6) and before presenting results to the user, automatically invoke three agents in sequence to validate the extraction:
+
+1. **doc-orchestrator** (read agent at `${CLAUDE_PLUGIN_ROOT}/agents/doc-orchestrator.md`):
+   - Run pipeline validation checks (P1-P4: metadata, structure, content, visual)
+   - Run field population checks (are downstream skills' PI fields populated?)
+   - Run cross-file consistency checks
+   - Report pass/fail summary with any issues found
+
+2. **data-integrity-watchdog** (read agent at `${CLAUDE_PLUGIN_ROOT}/agents/data-integrity-watchdog.md`):
+   - Run orphan detection on the updated files
+   - Run cross-file conflict checks focused on files touched by this extraction
+   - Report any new integrity issues introduced by the extraction
+
+3. **conflict-detection-agent** (read agent at `${CLAUDE_PLUGIN_ROOT}/agents/conflict-detection-agent.md`):
+   - Run cross-discipline conflict detection against the newly extracted data
+   - Compare new data against existing data in other files (e.g., new spec values vs. existing plan data)
+   - Report any conflicts found, classified by severity
+
+Present the combined agent results as part of the extraction summary:
+```
+Extraction Complete — [document name]
+
+Data extracted: [summary of what was added/updated]
+Files updated: [list of JSON files modified]
+
+Agent Validation:
+  doc-orchestrator: [X checks passed, Y issues]
+  data-integrity-watchdog: [X clean, Y warnings]
+  conflict-detection: [X conflicts found (C critical, M major, N minor)]
+
+[If conflicts found, show top 3 by severity]
+```
+
+## Step 9: Summarize and Checkpoint
 
 **CRITICAL — This is the anti-loop checkpoint.**
 
 After processing a single document (or folder in interactive mode):
-1. Report what was extracted with a concise summary
+1. Report what was extracted with the agent validation results from Step 8
 2. **STOP processing**
-3. **Use AskUserQuestion** with options: Process next, Reprocess deeper, Done for now, Show what's left
+3. **Use AskUserQuestion** with options: Process next, Reprocess deeper, Review conflicts, Done for now, Show what's left
 
 **NEVER automatically continue to the next document.** Always stop and ask.

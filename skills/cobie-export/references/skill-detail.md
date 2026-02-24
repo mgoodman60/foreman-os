@@ -68,10 +68,10 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | CreatedBy | Y | document-intelligence.extractor | Email | system@foreman-os.local |
 | CreatedOn | Y | audit-trail.timestamp | ISO 8601 | 2026-02-19T10:30:00Z |
 | Category | Y | directory.role-category | Enum: GC / Sub / Supplier / Architect / Engineer / Owner / Consultant / Facility | GC |
-| Company | Y | directory.company-name | Text | W Principles |
+| Company | Y | directory.company-name | Text | {gc_company} |
 | Phone | N | directory.phone | Phone number | +1-859-555-0142 |
 | Department | N | directory.department | Text | Construction Management |
-| OrganizationCode | N | directory.org-code | Text | WP-MOSC-001 |
+| OrganizationCode | N | directory.org-code | Text | WP-{building_code} |
 | GivenName | Y | directory.first-name | Text | Andrew |
 | FamilyName | Y | directory.last-name | Text | Eberle |
 | MiddleInitials | N | directory.middle-initials | Text (max 3) | J |
@@ -94,16 +94,18 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 ```
 
 **Example Rows**:
-- **Miles Goodman** (Super, W Principles) | GC | 859-555-0101
-- **Andrew Eberle** (PM, W Principles) | GC | 859-555-0142
-- **Walker Construction** (Earthwork/Excavation) | Sub | 606-555-0050
-- **Alexander Construction** (PEMB Erection, SC-825021-06) | Sub | 859-555-0200
-- **Davis and Plomin** (HVAC/Mechanical, SC-825021-07) | Sub | 859-555-0225
-- **EKD** (Drywall/CFS Framing, SC-825021-05) | Sub | 859-555-0310
-- **Schiller** (Doors/Hardware, $227,567 PO) | Supplier | 859-555-0500
-- **Ferguson Enterprises** (Plumbing/Utilities, $30,442) | Supplier | 859-555-0600
-- **Nucor Building Systems** (PEMB, S25R0990A) | Supplier | 1-800-368-2627
-- **Wells Concrete** (Mix designs, concrete supply) | Supplier | 606-555-1200
+- **{superintendent_name}** (Super, {gc_company}) | GC | {phone}
+- **{pm_name}** (PM, {gc_company}) | GC | {phone}
+- **{earthwork_sub}** (Earthwork/Excavation) | Sub | {phone}
+- **{structural_sub}** (Structural Steel/Erection) | Sub | {phone}
+- **{hvac_sub}** (HVAC/Mechanical) | Sub | {phone}
+- **{framing_sub}** (Drywall/CFS Framing) | Sub | {phone}
+- **{door_supplier}** (Doors/Hardware) | Supplier | {phone}
+- **{plumbing_supplier}** (Plumbing/Utilities) | Supplier | {phone}
+- **{steel_supplier}** (Structural Steel) | Supplier | {phone}
+- **{concrete_supplier}** (Mix designs, concrete supply) | Supplier | {phone}
+
+*Populate from directory.json — read all contacts, companies, and roles from the project's extracted data.*
 
 ---
 
@@ -117,18 +119,18 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 
 | COBie Field | Required | Data Source | Format | Example |
 |-------------|----------|-------------|--------|---------|
-| ProjectName | Y (PK) | project-config.project-name | Text | Morehead One Senior Care |
-| ProjectCode | Y | project-config.project-number | Text | 825021 |
-| BuildingName | Y | project-config.building-name | Text | MOSC Main Building |
-| BuildingCode | Y | project-config.building-code | Text | MOSC-001 |
-| SiteName | N | project-config.site-name | Text | Morehead Senior Care Campus |
+| ProjectName | Y (PK) | project-config.project-name | Text | {project_name} |
+| ProjectCode | Y | project-config.project-number | Text | {job_number} |
+| BuildingName | Y | project-config.building-name | Text | {building_name} |
+| BuildingCode | Y | project-config.building-code | Text | {building_code} |
+| SiteName | N | project-config.site-name | Text | {site_name} |
 | LinearUnits | Y | project-config.units | Enum: Feet / Meters | Feet |
 | AreaUnits | Y | project-config.units | Enum: SF / SM | SF |
 | VolumeUnits | Y | project-config.units | Enum: CF / CM | CF |
 | AreaGrossBuilding | Y | plans-spatial.gross-building-area | Numeric (SF) | 9980 |
 | BuildingDescription | N | project-config.description | Text | 1-story healthcare facility, E occupancy, 149 occupant load |
 | BuildingCategory | Y | project-config.occupancy-type | Enum: Healthcare / Educational / Office / Residential / Industrial / Retail / Mixed / Other | Healthcare |
-| BuildingLocation | N | project-config.site-address | Address | Morehead, KY |
+| BuildingLocation | N | project-config.site-address | Address | {project_location} |
 | Longitude | N | site-survey.longitude | Decimal degrees | -83.4256 |
 | Latitude | N | site-survey.latitude | Decimal degrees | 38.1842 |
 | Elevation | N | site-survey.elevation | Feet MSL | 762 |
@@ -160,14 +162,14 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 ```
 
 **Example Data**:
-- ProjectName: Morehead One Senior Care
-- ProjectCode: 825021
-- BuildingName: MOSC Main Building
-- BuildingCode: MOSC-001
+- ProjectName: {project_name}
+- ProjectCode: {job_number}
+- BuildingName: {building_name}
+- BuildingCode: {building_code}
 - BuildingCategory: Healthcare
 - AreaGrossBuilding: 9,980 SF
 - BuildingDescription: 1-story Type IIB healthcare facility, E occupancy, 149 occupants, 16 bedrooms, 5 common areas
-- Location: Morehead, Kentucky
+- Location: {project_location}
 
 ---
 
@@ -182,7 +184,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | COBie Field | Required | Data Source | Format | Example |
 |-------------|----------|-------------|--------|---------|
 | FloorName | Y (PK) | plans-spatial.floor-name | Text | Level 1 / Ground Floor |
-| BuildingName | Y | project-config.building-name | Text (FK to Facility) | MOSC Main Building |
+| BuildingName | Y | project-config.building-name | Text (FK to Facility) | {building_name} |
 | CreatedBy | Y | document-intelligence.extractor | Email | system@foreman-os.local |
 | CreatedOn | Y | audit-trail.current-timestamp | ISO 8601 | 2026-02-19T10:30:00Z |
 | FloorDescription | N | plans-spatial.floor-description | Text | Single-story floor, includes all occupied spaces |
@@ -205,7 +207,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**For MOSC**:
+**Example Floor Data**:
 - Single floor (1-story building)
 - FloorName: "Ground Floor" or "Level 1"
 - AreaGrossFloor: 9,980 SF
@@ -261,7 +263,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Space Inventory** (from project memory):
+**Example Space Inventory** (from project data):
 - 16 Bedrooms (275 SF each approx) | Department: Patient Care | Occupancy: Occupant, 2 persons
 - 5 Common Areas (dining, activity, living, etc.) | Department: Patient Care
 - 8 Support Spaces (offices, med room, supply, laundry) | Department: Administrative/Support
@@ -283,7 +285,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | COBie Field | Required | Data Source | Format | Example |
 |-------------|----------|-------------|--------|---------|
 | ZoneName | Y (PK) | plans-spatial.zone-name OR system-generated | Text | HVAC Zone 1 / Fire Zone A / Dept: Patient Care |
-| BuildingName | Y | project-config.building-name | Text (FK to Facility) | MOSC Main Building |
+| BuildingName | Y | project-config.building-name | Text (FK to Facility) | {building_name} |
 | CreatedBy | Y | document-intelligence.extractor | Email | system@foreman-os.local |
 | CreatedOn | Y | audit-trail.current-timestamp | ISO 8601 | 2026-02-19T10:30:00Z |
 | Description | N | zone-assignment.description | Text | HVAC zone serving patient bedrooms 1-8 and west corridor |
@@ -304,7 +306,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Zones** (inferred from project data):
+**Example Zones** (inferred from project data):
 - **HVAC Zones** (from Carrier AHU-1/2/3): AHU-1 zone (east wing bedrooms), AHU-2 zone (common areas), AHU-3 zone (west wing + support)
 - **Fire Zones** (IBC compliance): Zone A (patient bedrooms west), Zone B (patient bedrooms east), Zone C (common/support areas)
 - **Plumbing Zones** (from GWH-1 water heater): Domestic hot water distribution main zone
@@ -361,7 +363,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Type Examples**:
+**Example Type Entries**:
 
 | TypeName | Manufacturer | ModelNumber | Category | WarrantyParts | ExpectedLife |
 |----------|--------------|-------------|----------|---------------|--------------|
@@ -375,9 +377,9 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | RenewAire ERV-1 | RenewAire | E180 Smart | HVAC | 3 years | 20 years |
 | Greenheck EF-1 | Greenheck | ® | Plumbing | 3 years | 20 years |
 | Greenheck EF-2 | Greenheck | ® | Plumbing | 3 years | 20 years |
-| Schiller Door (HM) | Schiller | Custom | Doors | 5 years | 25 years |
-| Schiller Door (Wood) | Schiller | Custom | Doors | 5 years | 25 years |
-| Toilet Accessories | Schiller | Various | Fixtures | 5 years | 10 years |
+| Hollow Metal Door | {door_manufacturer} | Per Spec | Doors | 5 years | 25 years |
+| Wood Door | {door_manufacturer} | Per Spec | Doors | 5 years | 25 years |
+| Toilet Accessories | {accessory_manufacturer} | Various | Fixtures | 5 years | 10 years |
 
 ---
 
@@ -399,7 +401,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | Description | N | component-registry.description | Text | Air handling unit installed in mechanical room serving west patient wing |
 | SerialNumber | N | commissioning-data.serial-number OR closeout-tag.serial | Text | 987654321 |
 | InstallationDate | N | commissioning-data.startup-date OR closeout-inspection.date-complete | Date (YYYY-MM-DD) | 2026-04-15 |
-| TagNumber | N | component-registry.asset-tag OR closeout-tag.tag-number | Text | MOSC-AHU-001 |
+| TagNumber | N | component-registry.asset-tag OR closeout-tag.tag-number | Text | {project_code}-AHU-001 |
 | BarCode | N | component-registry.barcode OR RFID-tag.identifier | Text (barcode data) | 7722448811223344 |
 | AssetIdentifier | N | component-registry.asset-id | Text | AC-HVA-0001 |
 | Status | Y | component-registry.operational-status | Enum: New / Existing / Planned / Obsolete / Unknown | New |
@@ -425,7 +427,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Component Examples** (populated at closeout):
+**Example Component Entries** (populated at closeout):
 - AHU-1 Unit | Type: Carrier AHU-1 | Space: Mechanical Room | SerialNumber: 987654321 | Location: X-3, Y-D | Status: New
 - AC-1 Split | Type: Carrier Split AC-1 | Space: Bedroom 1 | SerialNumber: 654321987 | Status: New
 - AC-2 Split | Type: Carrier Split AC-2 | Space: Bedroom 2 | SerialNumber: 654321988 | Status: New
@@ -466,7 +468,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Systems**:
+**Example Systems**:
 - HVAC System (central with 3 AHUs + distributed ductwork + terminal units + ERV)
 - Domestic Hot Water System (Lochinvar GWH-1 water heater + piping + fixtures)
 - Cold Water System (supply lines + backflow prevention)
@@ -513,7 +515,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Assemblies**:
+**Example Assemblies**:
 - AHU-1 Complete Unit (fan, motor, filters, dampers, controls)
 - Water Heater Hot Water Distribution (heater + pump + controls + mixing valve)
 - Fire Alarm System Package (control panel + sensors + manual stations + horns)
@@ -576,7 +578,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | QuantityRequired | N | spare-parts-list.recommended-inventory | Numeric | 6 |
 | Cost | N | spare-parts-list.unit-cost | Currency (USD) | 45.00 |
 | LeadTime | N | spare-parts-list.supplier-lead-time | Text (days) | 3-5 business days |
-| Supplier | N | spare-parts-list.supplier-name | Text | Ferguson Enterprises |
+| Supplier | N | spare-parts-list.supplier-name | Text | {plumbing_supplier} |
 
 **Mapping Logic**:
 
@@ -679,7 +681,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Maintenance Jobs** (from manufacturer manuals):
+**Example Maintenance Jobs** (from manufacturer manuals):
 - HVAC Filter Replacement | Frequency: Monthly | Performer: HVAC Technician
 - Water Heater Flushing & Scale Removal | Frequency: Annual | Performer: HVAC Technician
 - AC Unit Refrigerant Charge Verification | Frequency: Semi-Annual | Performer: EPA-Certified Technician
@@ -742,7 +744,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | CreatedBy | Y | document-intelligence.extractor | Email | system@foreman-os.local |
 | CreatedOn | Y | audit-trail.current-timestamp | ISO 8601 | 2026-02-19T10:30:00Z |
 | Category | Y | document-registry.document-type | Enum: Specification / Manual / Warranty / Commissioning / Drawing / Certificate / Report / SDS | Specification |
-| ApprovedBy | N | document-registry.approver | Text | Andrew Eberle / Project Manager |
+| ApprovedBy | N | document-registry.approver | Text | {pm_name} / Project Manager |
 | Stage | Y | document-registry.project-phase | Enum: Design / Construction / Closeout / Operation | Closeout |
 | Description | N | document-registry.description | Text | Manufacturer product data sheet with performance curves and maintenance schedule |
 | Location | Y | document-registry.file-path-or-url | Text (hyperlink/path) | /submittals/Carrier-AHU-25HCH036S0A0C0-spec.pdf |
@@ -766,7 +768,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Documents** (expected at closeout):
+**Example Documents** (expected at closeout):
 - Carrier AHU-1 Product Data Sheet (Specification, /submittals/Carrier-AHU-*.pdf)
 - Carrier AHU-2 Product Data Sheet (Specification, /submittals/Carrier-AHU-*.pdf)
 - Carrier AHU-3 Product Data Sheet (Specification, /submittals/Carrier-AHU-*.pdf)
@@ -782,7 +784,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 - HVAC Commissioning Report (Commissioning, TAB data)
 - Plumbing System Pressure Test Report (Commissioning)
 - Fire Suppression System Acceptance Test (Commissioning, if applicable)
-- Schiller Door and Hardware Warranty Certificates (Warranty, 5-year coverage)
+- {door_supplier} Door and Hardware Warranty Certificates (Warranty, 5-year coverage)
 - All Major Equipment Warranties (Warranty)
 
 ---
@@ -857,7 +859,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 }
 ```
 
-**MOSC Grid System** (from project memory):
+**Example Grid System** (from project memory):
 - X-Grids: 1, 2, 3, 4, 5 (spaced 26'-8" apart, total 75'-0")
 - Y-Grids: A, B, C, D, E, F, G, H (spaced ~16'-8" apart, total 132'-8")
 - Z-Axis: 1 (single floor)
@@ -886,7 +888,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 | Category | Y | issue-registry.issue-type | Enum: Deficiency / Discrepancy / Request for Information / Incomplete / Damage / Safety | Deficiency |
 | Description | Y | issue-registry.description | Text | AHU-1 supply duct not properly sealed at penetration |
 | Status | Y | issue-registry.status | Enum: Open / In Progress / Resolved / Deferred / Closed / On Hold | Open |
-| Assigned | N | issue-registry.assigned-to | Text (email or name) | Alexander Construction / HVAC Sub |
+| Assigned | N | issue-registry.assigned-to | Text (email or name) | {structural_sub} / HVAC Sub |
 | DueDate | N | issue-registry.due-date | Date (YYYY-MM-DD) | 2026-05-15 |
 | Priority | N | issue-registry.priority | Enum: Critical / High / Medium / Low | Medium |
 | Component | N | issue-registry.affected-component | Text (FK reference) | AHU-1 Unit (West Wing) |
@@ -916,7 +918,7 @@ The COBie export workbook contains exactly 18 worksheets (tabs) in this order:
 
 ## 8. Healthcare Facility Specifics
 
-MOSC is a senior care facility (E occupancy, 149 occupants, 16 bedrooms) subject to additional regulatory requirements beyond standard building codes.
+**Facility-Type Extension: Healthcare** — Healthcare, senior care, and medical facilities are subject to additional regulatory requirements beyond standard building codes. Activate this extension when `project-config.json` occupancy type includes healthcare, medical, senior care, or assisted living.
 
 ### Healthcare-Specific COBie Fields
 
@@ -962,7 +964,7 @@ The COBie export includes these healthcare-critical data extensions:
 
 ### Medical Equipment Tracking
 
-For MOSC, the following medical systems require enhanced COBie documentation:
+For healthcare/medical facilities, the following systems require enhanced COBie documentation:
 
 **Nurse Call System**:
 - Manufacturer: [TBD in project memory]
@@ -1227,7 +1229,7 @@ Project-specific COBie configuration and field mapping overrides.
 
 ```json
 {
-  "project_number": "825021",
+  "project_number": "{job_number}",
   "cobie_version": "2.4",
   "custom_attributes": [
     {
@@ -1316,7 +1318,7 @@ Project-specific COBie configuration and field mapping overrides.
 
 - Confirm all Contact information (update email/phone as needed)
 - Verify Floor/Space definitions against actual site conditions
-- Receive and log initial submittals (Schiller doors, Wells concrete)
+- Receive and log initial submittals ({door_supplier} doors, {concrete_supplier} concrete)
 - Begin assembly of Type/Component definitions from approved submittals
 - Document any Site changes/deviations (ASI, RFI log) in Issue worksheet
 - Maintain daily reports with equipment delivery/receipt notes
@@ -1326,14 +1328,14 @@ Project-specific COBie configuration and field mapping overrides.
 - Super: Photograph and document serial plates for major equipment
 - Sub Coordinators: Submit equipment data sheets with deliveries
 - GC: Update Issue worksheet with submittal status weekly
-- PM: Escalate overdue submittals (as of 2/19/26: Schiller 24 days overdue, Wells 17 days overdue)
+- PM: Escalate overdue submittals (as of 2/19/26: {door_supplier} 24 days overdue, {concrete_supplier} 17 days overdue)
 
 ### Mid-Construction (PEMB Erection through Rough-In, Mar-May)
 
 **Target COBie Readiness: 65-75%**
 
-- PEMB erection: Log PEMB structure into Component worksheet (Nucor model S25R0990A, serial/details)
-- Electrical rough-in: Award electrical sub (SC-825021-08 still pending); log electrical components
+- PEMB erection: Log PEMB structure into Component worksheet ({steel_supplier} model S25R0990A, serial/details)
+- Electrical rough-in: Award electrical sub (SC-{job_number}-08 still pending); log electrical components
 - Mechanical rough-in: Log ductwork, piping, electrical conduit connections (Connection worksheet)
 - Commissioning prep: Coordinate with Commissioning Agent to ensure COBie-compatible data delivery
 - Document collection: Compile approved submittals, shop drawings, test reports
@@ -1393,8 +1395,8 @@ Project-specific COBie configuration and field mapping overrides.
 - /project-data/cobie-export-config.json (project-specific configuration)
 - /project-data/ (all data sources: *.json files)
 
-**MOSC Project References**:
-- /mnt/Andrew Eberle's files - MOSC - Master Project Folder/CLAUDE.md (project memory, contacts, status)
+**Project References**:
+- Read from `project-config.json` for project memory, contacts, and status
 - /project-data/plans-spatial.json (space/zone definitions from architectural plans)
 - /project-data/specs-quality.json (equipment schedules from MEP specifications)
 - /project-data/submittal-log.json (submitted equipment data sheets, O&M manuals)
@@ -1403,7 +1405,7 @@ Project-specific COBie configuration and field mapping overrides.
 
 **End of cobie-export SKILL.md**
 
-This comprehensive documentation provides construction teams and facility managers with a complete guide for implementing COBie data export in the Foreman OS construction management system, with specific application to healthcare facility projects like Morehead One Senior Care.
+This comprehensive documentation provides construction teams and facility managers with a complete guide for implementing COBie data export in the Foreman OS construction management system. Healthcare-specific extensions are available under the Facility-Type Extension section and activate automatically when the project's occupancy type includes healthcare, medical, or senior care.
 
 ## 7. Commands
 
@@ -1413,7 +1415,7 @@ Display current COBie data readiness and completeness across all worksheets. Doe
 
 **Example Output**:
 ```
-COBie Status — Project: Morehead One Senior Care (Job #825021)
+COBie Status — Project: {project_name} (Job #{job_number})
 Generated: 2026-02-19 10:30 AM
 
 Data Completeness by Worksheet:
@@ -1442,7 +1444,7 @@ Full Readiness: 98% @ Substantial Completion (07/29/26)
 
 Data Gaps & Recommendations:
   → Component serial numbers: Action required at equipment closeout — ensure commissioning team captures asset tags
-  → O&M Manuals: Schiller, Ferguson, Nucor packages overdue — escalate to PM for recovery
+  → O&M Manuals: {door_supplier}, Ferguson, {steel_supplier} packages overdue — escalate to PM for recovery
   → Commissioning reports: Expected May 2026 — ensure TAB consultant delivers in COBie-compatible format
   → GPS coordinates: Pending site survey by [Surveyor name] — follow up by 3/1/26
   → Fire system documentation: Contingent on design finalization — DUE by 2/28/26
@@ -1452,7 +1454,7 @@ Next Action: Run '/cobie export' when ready, or '/cobie gaps' to see detailed mi
 
 ### /cobie export
 
-Generate the multi-tab COBie Excel workbook. Output: `MOSC-COBie-Export-[timestamp].xlsx`
+Generate the multi-tab COBie Excel workbook. Output: `{project_code}-COBie-Export-[timestamp].xlsx`
 
 **Inputs**:
 - Optional: `--phase design|construction|closeout` (default: based on current project status)
@@ -1463,7 +1465,7 @@ Generate the multi-tab COBie Excel workbook. Output: `MOSC-COBie-Export-[timesta
 ```
 COBie Export Complete — 2026-02-19 10:35 AM
 
-Workbook: /project-data/MOSC-COBie-Export-2026-02-19.xlsx
+Workbook: /project-data/{project_code}-COBie-Export-2026-02-19.xlsx
 File size: 2.4 MB
 Worksheets: 18 tabs (all standard COBie v2.4)
 
@@ -1503,7 +1505,7 @@ Validate an existing COBie export against the schema. Used to QA previous export
 
 **Example**:
 ```
-/cobie validate /project-data/MOSC-COBie-Export-2026-02-19.xlsx
+/cobie validate /project-data/{project_code}-COBie-Export-2026-02-19.xlsx
 
 Validation Report — 2026-02-19 10:40 AM
 
@@ -1552,14 +1554,14 @@ Missing Data by Source (Actionable Items):
 
 1. SUPPLIER DOCUMENTS (Contact: Submittals Coordinator)
 
-   Schiller Doors & Hardware Package (SUB-002 to SUB-005)
+   {door_supplier} Doors & Hardware Package (SUB-002 to SUB-005)
    ├─ Status: OVERDUE (24 days in review)
    ├─ Required for: Type, Spare, Document worksheets
-   ├─ Action: Expedite submittal approval or issue RFI to Schiller
-   ├─ Owner: Andrew Eberle (PM)
+   ├─ Action: Expedite submittal approval or issue RFI to {door_supplier}
+   ├─ Owner: {pm_name} (PM)
    └─ Due: ASAP (critical path: door frames for rough-in start 04/21/26)
 
-   Wells Concrete Mix Designs (SUB-001)
+   {concrete_supplier} Concrete Mix Designs (SUB-001)
    ├─ Status: OVERDUE (17 days in review)
    ├─ Required for: Document worksheet (test reports)
    ├─ Action: Approve mix designs and initiate concrete testing
@@ -1570,14 +1572,14 @@ Missing Data by Source (Actionable Items):
    ├─ Status: Quote received, PO pending
    ├─ Required for: Type, Component, Spare worksheets
    ├─ Action: Issue PO for materials; request O&M manual with submittal
-   ├─ Owner: Andrew Eberle (PM)
+   ├─ Owner: {pm_name} (PM)
    └─ Due: By 02/28/26
 
    ICast Precast Structures (Quote pending)
    ├─ Status: Quote received, PO pending
    ├─ Required for: Component, Coordinate worksheets
    ├─ Action: Issue PO; request as-built data with delivery
-   ├─ Owner: Andrew Eberle (PM)
+   ├─ Owner: {pm_name} (PM)
    └─ Due: By 02/28/26
 
 2. COMMISSIONING DATA (Contact: Commissioning Agent [TBD])
@@ -1625,7 +1627,7 @@ Missing Data by Source (Actionable Items):
    ├─ Status: Design available; as-built pending closeout
    ├─ Required for: Space worksheet (FloorFinish, WallFinish, CeilingFinish)
    ├─ Action: Architect to verify finishes at final inspection; provide as-built updates
-   ├─ Owner: Architect + EKD Framing/Drywall Sub
+   ├─ Owner: Architect + {framing_sub} Framing/Drywall Sub
    └─ Due: By 07/15/26
 
    MEP Equipment Cut Sheets (All)
@@ -1642,30 +1644,30 @@ Missing Data by Source (Actionable Items):
    ├─ Owner: Architect + Fire Protection Engineer
    └─ Due: By 02/28/26
 
-5. PROJECT TEAM CONTACTS (Contact: PM Andrew Eberle)
+5. PROJECT TEAM CONTACTS (Contact: PM {pm_name})
 
    Architect Information
    ├─ Status: "TBD" in project data
    ├─ Required for: Contact worksheet
    ├─ Action: Confirm architect name, contact info, role
-   ├─ Owner: Andrew Eberle (PM)
+   ├─ Owner: {pm_name} (PM)
    └─ Due: By 02/20/26
 
    Structural Engineer Information
    ├─ Status: "Yeiser (referenced on MMI shop drawings)" — role/contact TBD
    ├─ Required for: Contact worksheet
    ├─ Action: Clarify Yeiser role; add to contact list with email/phone
-   ├─ Owner: Andrew Eberle (PM)
+   ├─ Owner: {pm_name} (PM)
    └─ Due: By 02/20/26
 
    Electrical Contractor
-   ├─ Status: "SC-825021-08 PENDING" (not yet awarded)
+   ├─ Status: "SC-{job_number}-08 PENDING" (not yet awarded)
    ├─ Required for: Contact, Type, Component worksheets
    ├─ Action: Award electrical sub contract ASAP (critical path for rough-in 04/21/26)
-   ├─ Owner: Andrew Eberle (PM)
+   ├─ Owner: {pm_name} (PM)
    └─ Due: By 02/28/26 (3 weeks until PEMB Erection 03/23/26)
 
-6. FIELD CLOSEOUT DATA (Contact: Super Miles Goodman)
+6. FIELD CLOSEOUT DATA (Contact: Super {superintendent_name})
 
    Equipment Serial Numbers & Asset Tags
    ├─ Status: 7/31 components serialized; 24 pending
@@ -1690,8 +1692,8 @@ Missing Data by Source (Actionable Items):
 
 Summary of Actions:
   Immediate (by 02/28/26):
-    • Expedite Schiller door submittal approval
-    • Approve Wells concrete mix designs
+    • Expedite {door_supplier} door submittal approval
+    • Approve {concrete_supplier} concrete mix designs
     • Issue POs for Ferguson & ICast
     • Confirm architect & engineers contact info
     • Award electrical sub contract

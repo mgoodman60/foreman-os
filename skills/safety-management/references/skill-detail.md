@@ -156,7 +156,7 @@ Topics organized by **Trade** and **Hazard Type**:
 - Duration: 15 minutes (critical hazard)
 - Frequency: Before excavation; daily safety briefing; after weather changes
 - OSHA Reference: 1926.651 (Excavation Requirements); Geotechnical site-specific safety plan
-- **Project-Specific**: Morehead site has frost-susceptible soils and 3.5-foot fill removal (high cave-in risk)
+- **Site-Specific** (read from project geotech data): Check `project-config.json` and `specs-quality.json` for soil conditions — frost-susceptible soils require modified sloping angles, expansive clay needs wider excavation, high water table requires dewatering plan, contaminated soils need hazmat protocols. Read fill depth from geotech report data to assess cave-in risk level.
 
 **Topic 11: Compaction & Earthwork Equipment**
 - Hazards: Struck-by (compactor, roller), dust inhalation, noise
@@ -184,7 +184,7 @@ Topics organized by **Trade** and **Hazard Type**:
 - Duration: 15 minutes
 - Frequency: Before roofing operations; daily briefing during roofing phase
 - OSHA Reference: 1926.502 (Fall Protection)
-- **Project-Specific**: Roof slope 1:12 (low slope); wind gusts > 25 MPH halt work (spec 03720)
+- **Site-Specific** (read from project data): Check `plans-spatial.json → sections.building[].roof_slope` for actual slope — low-slope roofs (≤4:12) require different fall protection than steep-slope (>4:12). Read wind halt threshold from `specs-quality.json → weather_thresholds` for the roofing spec section.
 
 **Topic 13: Scaffold Safety**
 - Hazards: Falls from scaffold, collapse (overload), shifted/unstable
@@ -271,7 +271,7 @@ Topics organized by **Trade** and **Hazard Type**:
 **Sign-In Sheet Template**:
 ```
 TOOLBOX TALK ATTENDANCE RECORD
-Project: Morehead One Senior Care
+Project: {project_name}
 Date: _______________
 Topic: _______________
 Duration: _______________
@@ -299,7 +299,7 @@ Signature of Supervisor: _______________    Date: __________
 {
   "id": "TOOLBOX-TALK-001",
   "date": "2026-02-18",
-  "project": "MOSC",
+  "project": "{project_code}",
   "topic": "PEMB Erection Safety",
   "topic_id": "topic_4",
   "duration_minutes": 15,
@@ -337,7 +337,7 @@ A JSA is a systematic method of identifying hazards and controls for a specific 
 **Template**:
 ```
 JSA: [Task Name]
-Project: Morehead One Senior Care
+Project: {project_name}
 Activity: [Specific work to be performed]
 Location: [On-site location]
 Date Prepared: [Date]
@@ -368,12 +368,12 @@ Safety Manager: _______________    Date: __________
 #### JSA 1: Concrete Footings Pour (Foundation)
 
 ```
-JSA: Concrete Footings Pour (Morehead One Senior Care)
+JSA: Concrete Footings Pour
 Activity: Placing concrete in footings C1-C6, foundation phase
 Location: Building perimeter, footings under columns
 Date: 2026-02-18
 Duration: 4 hours (estimated)
-Crew: Concrete crew (Wells Concrete), laborers, superintendent
+Crew: Concrete crew ({concrete_sub_name}), laborers, superintendent
 
 PREREQUISITES:
 - Forms inspected and approved
@@ -468,15 +468,15 @@ UPDATES REQUIRED IF:
 
 ```
 JSA: PEMB Column Erection & Connection
-Project: Morehead One Senior Care
-Activity: Installing Nucor PEMB columns, connections, and bracing; 36-foot eave height
+Project: {project_name}
+Activity: Installing structural steel/PEMB columns, connections, and bracing (read eave height from plans-spatial.json)
 Location: Multiple bays (Bays 1-6), structural system
 Duration: 10 days (estimated)
 Start Date: 2026-03-23
-Crew: Ironworkers (Alexander), crane operator, rigger, spotters, superintendent
+Crew: Ironworkers ({steel_sub_name}), crane operator, rigger, spotters, superintendent
 
 CRITICAL HAZARDS:
-- Fall from 36 feet (fatality potential)
+- Fall from height (read from plans-spatial.json building height — fatality potential)
 - Struck-by suspended load (fatality potential)
 - Crushing (load shift during assembly)
 
@@ -653,7 +653,7 @@ UPDATES REQUIRED IF:
 
 ```
 JSA: Excavation & 3.5-Foot Fill Removal
-Project: Morehead One Senior Care
+Project: {project_name}
 Activity: Removing undocumented fill and native excavation; 2,000 PSF bearing verification
 Location: Building footprint area (approx. 10,000 SF)
 Duration: 3-4 weeks
@@ -808,7 +808,7 @@ UPDATES REQUIRED IF:
 
 ```
 JSA: PEMB Roof Panel Installation & Attachment
-Project: Morehead One Senior Care
+Project: {project_name}
 Activity: Installing metal roof panels on PEMB structure; 1:12 slope
 Location: Full roof (75' x 132'-8")
 Duration: 10 days (estimated)
@@ -1016,7 +1016,7 @@ RESTRICTED DUTY (Column J):
 **OSHA 300 Log Template**:
 ```
 OSHA 300 LOG OF WORK-RELATED INJURIES AND ILLNESSES
-Project: Morehead One Senior Care
+Project: {project_name}
 Year: 2026
 
 Line | Case # | Employee | Job Title | Date | Reported | Where | Description | Classification | Days Away | Restricted | Other
@@ -1237,7 +1237,7 @@ EMR > 1.0: Company worse than average (rate increase, e.g., 1.25 = 25% premium i
 
 ```
 WEEKLY SAFETY REPORT
-Project: Morehead One Senior Care
+Project: {project_name}
 Week of: 2026-02-16
 
 INCIDENTS & INJURIES:
@@ -1293,7 +1293,7 @@ Date: 2026-02-21
 
 ```
 MONTHLY SAFETY REPORT
-Project: Morehead One Senior Care
+Project: {project_name}
 Month: February 2026
 
 MONTHLY STATISTICS:
@@ -1366,7 +1366,7 @@ Date: 2026-03-01
 
 ```
 FALL PROTECTION INSPECTION CHECKLIST
-Project: Morehead One Senior Care
+Project: {project_name}
 Date: _______________
 Inspector: _______________
 Phase/Location: _______________
@@ -1445,7 +1445,7 @@ Supervisor Acknowledgment: _______________    Date: _______________
 
 ```
 EXCAVATION & TRENCHING SAFETY CHECKLIST
-Project: Morehead One Senior Care
+Project: {project_name}
 Date: _______________
 Inspector: _______________
 Location/Trench: _______________
@@ -1539,7 +1539,7 @@ Competent Person: _______________    Date: _______________
 
 ```
 ELECTRICAL SAFETY INSPECTION CHECKLIST
-Project: Morehead One Senior Care
+Project: {project_name}
 Date: _______________
 Inspector: _______________
 Phase/Location: _______________
@@ -1614,7 +1614,7 @@ Electrical Supervisor: _______________    Date: _______________
 
 ```
 HOUSEKEEPING & GENERAL SITE SAFETY CHECKLIST
-Project: Morehead One Senior Care
+Project: {project_name}
 Date: _______________
 Inspector: _______________
 Phase/Location: _______________
@@ -1748,7 +1748,7 @@ Supervisor: _______________    Date: _______________
 
 ```json
 {
-  "project": "MOSC",
+  "project": "{project_code}",
   "incidents": [
     {
       "id": "INC-001",
@@ -1762,7 +1762,7 @@ Supervisor: _______________    Date: _______________
       "injury_type": "laceration",
       "body_part": "head",
       "medical_treatment": "urgent_care",
-      "facility": "Morehead Clinic",
+      "facility": "{facility_name}",
       "severity": "moderate",
       "recordable": true,
       "days_away": 0,
@@ -1932,7 +1932,7 @@ Use this skill when user says:
 - NFPA 51B (Hot Work)
 
 **Project-Specific**:
-- Morehead One Senior Care Safety Plan
+- Project-specific Safety Plan (from project documents)
 - Structural Steel Erection Procedure (per PEMB manufacturer)
 - Geotechnical Report (frost-susceptible soils, fill removal requirements)
 

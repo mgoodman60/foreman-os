@@ -11,7 +11,7 @@ Comprehensive material and procurement lifecycle management. Track materials fro
 - `${CLAUDE_PLUGIN_ROOT}/skills/material-tracker/SKILL.md` - Material tracking methodology
 - `${CLAUDE_PLUGIN_ROOT}/skills/submittal-intelligence/SKILL.md` - Specification verification (for verify action)
 
-**Output Skills**: See the `xlsx` Cowork skill for procurement logs and delivery schedules in spreadsheet format. If available, also read the `xlsx` Cowork skill for professional spreadsheet formatting guidance when generating material tracking logs and procurement status reports.
+**Output Skills**: See the `xlsx` Cowork skill for procurement logs and delivery schedules in spreadsheet format.
 
 ## Execution Steps
 

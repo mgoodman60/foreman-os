@@ -9,7 +9,7 @@ argument-hint: [OAC/progress/safety/pre-install/coordination] [date]
 ## Overview
 Records meeting minutes, captures action items, tracks carry-forward items from previous meetings, and generates professional .docx meeting reports. Integrates with morning brief (overdue items), weekly reports, and project tracking.
 
-**Output Skills**: See the `docx` Cowork skill for .docx generation best practices. If available, also read the `docx` Cowork skill for professional Word document formatting guidance when generating meeting minutes documents.
+**Output Skills**: See the `docx` Cowork skill for .docx generation best practices.
 
 ## Skills Referenced
 - `${CLAUDE_PLUGIN_ROOT}/skills/meeting-minutes/SKILL.md` — Meeting types, action item tracking, carry-forward logic

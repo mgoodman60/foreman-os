@@ -1391,7 +1391,7 @@ Project-specific COBie configuration and field mapping overrides.
 - BS 1192-4:2014 (UK standard; subset of NBIMS)
 
 **Foreman OS Integration**:
-- /v31-build/skills/cobie-export/SKILL.md (this file)
+- skills/cobie-export/SKILL.md (this file)
 - /project-data/cobie-export-config.json (project-specific configuration)
 - /project-data/ (all data sources: *.json files)
 

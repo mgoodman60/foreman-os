@@ -20,7 +20,7 @@ Auto-populates project data from subcontractor directory, integrates change orde
 - `${CLAUDE_PLUGIN_ROOT}/skills/project-data/SKILL.md` — Project configuration, subcontractor directory, change order tracking
 - `${CLAUDE_PLUGIN_ROOT}/skills/document-intelligence/SKILL.md` — G702/G703 document generation and formatting
 
-**Output Skills**: See the `docx` Cowork skill for .docx generation best practices. See the `xlsx` Cowork skill for G702/G703 spreadsheet formatting and structure. If available, also read the `xlsx` Cowork skill for professional Excel spreadsheet formatting guidance when generating G702/G703 forms and pay application schedules.
+**Output Skills**: See the `docx` Cowork skill for .docx generation best practices. See the `xlsx` Cowork skill for G702/G703 spreadsheet formatting and structure.
 
 ## Execution Steps
 

@@ -9,29 +9,5 @@
     "./skills/redis-caching",
     "./skills/swr-data-fetching",
     "./skills/trigger-dev-tasks"
-  ],
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash",
-            "args": ["-c", "if echo \"$TOOL_INPUT\" | grep -q 'schema.prisma'; then echo '\\n[foremanos-stack] WARNING: You are editing schema.prisma.\\nRemember to:\\n  1. Run `npx prisma generate` after changes\\n  2. Run `npx prisma db push` to sync to database\\n  3. Consider creating a migration plan for production\\n  4. Update any affected TypeScript types'; fi"]
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash",
-            "args": ["-c", "if echo \"$TOOL_INPUT\" | grep -q 'app/api/'; then if ! echo \"$TOOL_INPUT\" | grep -q 'getServerSession'; then echo '\\n[foremanos-stack] REMINDER: API routes should include getServerSession(authOptions) for authentication.\\nPublic routes (auth, webhooks, cron) are exempted at the middleware level but should have their own auth (CRON_SECRET, webhook signatures, etc.).'; fi; fi"]
-          }
-        ]
-      }
-    ]
-  }
+  ]
 }

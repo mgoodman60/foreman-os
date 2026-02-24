@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-This is **foreman-os-marketplace**, a cowork plugin marketplace repository containing the **Foreman_OS** plugin (v4.2.0) — a construction superintendent operating system with 42 skills, 37 commands, 10 agents, and 21 field-reference documents. It runs as a plugin inside the cowork platform.
+This is **foreman-os-marketplace**, a cowork plugin marketplace repository containing the **Foreman_OS** plugin (v4.2.0) — a construction superintendent operating system with 42 skills, 38 commands, 11 agents, and 21 field-reference documents. It runs as a plugin inside the cowork platform.
 
 ## Repository Structure
 
@@ -13,8 +13,8 @@ This is **foreman-os-marketplace**, a cowork plugin marketplace repository conta
   marketplace.json                 — Marketplace manifest (lists plugins)
   plugin.json                      — Plugin metadata (name, version, description)
 README.md                          — Full documentation of commands, skills, agents, and data files
-agents/                            — 10 autonomous agents (monitoring, analysis, advisory)
-commands/                          — 37 slash-command definitions (markdown files)
+agents/                            — 11 autonomous agents (monitoring, analysis, advisory)
+commands/                          — 38 slash-command definitions (markdown files)
 skills/                            — 42 skill directories, each with SKILL.md + references/ or scripts/
 plugins/                           — 4 Claude Code dev plugins (not used by Cowork)
   foremanos-stack/                 — Prisma, NextAuth, Redis, SWR, Trigger.dev patterns + hooks
@@ -43,7 +43,7 @@ Agents are autonomous definitions in `agents/` with YAML frontmatter (`name`, `d
 
 | Agent | Role |
 |-------|------|
-| superintendent-assistant | Top-level router to the 9 specialized agents below |
+| superintendent-assistant | Top-level router to the 10 specialized agents below |
 | data-integrity-watchdog | Validates consistency across all 28 JSON files |
 | project-health-monitor | Evaluates 8 KPIs and 5 anomaly detection rules |
 | dashboard-intelligence-analyst | Generates dashboard views and executive briefings |
@@ -53,6 +53,7 @@ Agents are autonomous definitions in `agents/` with YAML frontmatter (`name`, `d
 | field-intelligence-advisor | Contextual briefings for field situations |
 | weekly-planning-coordinator | Last Planner System cycle with constraint analysis |
 | doc-orchestrator | Coordinates extraction pipelines and validates output |
+| conflict-detection-agent | Scans for cross-discipline conflicts across plans, specs, schedules, and field data |
 
 Agents are read-only — they query the 28-file data store but never modify data without user approval. They consume reference docs from `skills/project-data/references/` for thresholds, query patterns, and validation rules.
 

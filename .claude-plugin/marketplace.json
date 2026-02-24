@@ -1,6 +1,6 @@
 {
   "name": "foreman-os-plugin",
-  "description": "Construction superintendent operating system plugin with 42 skills, 37 commands, 10 agents, and 21 field-reference documents for daily reporting, scheduling, document intelligence, and project management.",
+  "description": "Construction superintendent operating system plugin with 42 skills, 38 commands, 11 agents, and 21 field-reference documents for daily reporting, scheduling, document intelligence, and project management.",
   "owner": {
     "name": "Miles Goodman"
   },
@@ -8,7 +8,7 @@
     {
       "name": "foreman-os",
       "source": "./",
-      "description": "Complete construction superintendent operating system — 42 skills, 37 commands, 10 agents, 21 field-reference documents. Daily reporting, 3-week look-ahead planning, RFI/submittal management, weekly owner reports, material tracking, dashboards, closeout/commissioning, deep document intelligence, AutoCAD DWG extraction, and autonomous project monitoring agents."
+      "description": "Complete construction superintendent operating system — 42 skills, 38 commands, 11 agents, 21 field-reference documents. Daily reporting, 3-week look-ahead planning, RFI/submittal management, weekly owner reports, material tracking, dashboards, closeout/commissioning, deep document intelligence, AutoCAD DWG extraction, and autonomous project monitoring agents."
     },
     {
       "name": "foremanos-stack",

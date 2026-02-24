@@ -270,7 +270,7 @@ The plugin includes forty-two specialized skills:
 
 ## Agents
 
-The plugin includes ten autonomous agents that monitor, analyze, and advise across the project intelligence data store. Agents are auto-discovered from the `agents/` directory.
+The plugin includes eleven autonomous agents that monitor, analyze, and advise across the project intelligence data store. Agents are auto-discovered from the `agents/` directory.
 
 ### Orchestration
 - **superintendent-assistant** — Top-level assistant that routes requests to the appropriate specialized agent, coordinates multi-agent workflows, and handles general project questions
@@ -287,6 +287,7 @@ The plugin includes ten autonomous agents that monitor, analyze, and advise acro
 - **field-intelligence-advisor** — Provides contextual field intelligence by pulling together relevant data from across the project store to support real-time superintendent decisions
 - **weekly-planning-coordinator** — Orchestrates the weekly lookahead planning cycle using Last Planner System principles — constraint analysis, PPC tracking, and weekly work plan generation
 - **doc-orchestrator** — Coordinates multi-document extraction runs, validates extraction output, and ensures data quality after processing
+- **conflict-detection-agent** — Scans for cross-discipline discrepancies across plans, specs, schedules, and field data using 25 detection rules across 8 conflict categories
 
 ## Files
 

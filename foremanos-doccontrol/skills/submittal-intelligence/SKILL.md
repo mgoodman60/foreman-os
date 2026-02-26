@@ -120,7 +120,7 @@ This auto-population happens during `/process-docs` extraction. The `/submittal-
 - See compliance-checking.md for detailed determination rules and examples
 
 ### 6a. Concrete Mix Design Submittal Review
-When reviewing concrete mix design submittals, use the dedicated extraction reference at `${CLAUDE_PLUGIN_ROOT}/skills/document-intelligence/references/concrete-mix-design-extraction.md` for detailed extraction guidance. Key compliance checks:
+When reviewing concrete mix design submittals, refer to the concrete-mix-design-extraction template in the foremanos-intel plugin's document-intelligence skill for detailed extraction guidance (if installed). Key compliance checks:
 - Design f'c meets or exceeds specified f'c (with appropriate overdesign margin)
 - w/c ratio does not exceed specified maximum
 - Air content within specified range (especially for freeze-thaw exposure)

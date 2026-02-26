@@ -143,7 +143,7 @@ Every command and which plugin provides it.
 
 ## Agent Roster
 
-11 autonomous agents across 3 plugins. Agents monitor, analyze, and advise across the project intelligence store. They are read-only -- they never modify data without user approval.
+11 autonomous agents across 4 plugins. Agents monitor, analyze, and advise across the project intelligence store. They are read-only -- they never modify data without user approval.
 
 | Agent | Plugin | Role |
 |-------|--------|------|
@@ -153,11 +153,11 @@ Every command and which plugin provides it.
 | **project-health-monitor** | core | Evaluates 11 KPIs and 5 anomaly detection rules for health alerts and trends |
 | **doc-orchestrator** | intel | Coordinates multi-document extraction runs and validates output |
 | **data-integrity-watchdog** | intel | Validates consistency across all 28 JSON files -- orphans, conflicts, schema gaps |
-| **deadline-sentinel** | intel | Monitors all deadline sources with 6-tier urgency across schedule, submittals, RFIs, procurement |
+| **deadline-sentinel** | planning | Monitors all deadline sources with 6-tier urgency across schedule, submittals, RFIs, procurement |
 | **report-quality-auditor** | field | 10 daily + 6 weekly QA checks on generated reports |
 | **field-intelligence-advisor** | field | Contextual field intelligence for real-time superintendent decisions |
 | **weekly-planning-coordinator** | planning | Orchestrates the weekly lookahead cycle using Last Planner System principles |
-| **conflict-detection-agent** | planning | 25 detection rules across 8 conflict categories for cross-discipline discrepancies |
+| **conflict-detection-agent** | intel | 25 detection rules across 8 conflict categories for cross-discipline discrepancies |
 
 ## Skills Architecture
 

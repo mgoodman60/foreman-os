@@ -1,6 +1,6 @@
 {
   "name": "foremanos-compliance",
   "version": "5.0.0",
-  "description": "Risk registers, environmental compliance, project closeout, commissioning, subcontractor scorecards, and conflict detection.",
+  "description": "Risk registers, environmental compliance, project closeout, commissioning, subcontractor scorecards, conflict detection, and data health monitoring.",
   "author": { "name": "Miles Goodman" }
 }

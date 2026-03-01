@@ -1,3 +1,5 @@
+> See `~/.claude/CLAUDE.md` for universal workflow, agent teams, security, ecosystem, and key commands.
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
